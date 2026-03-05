@@ -1,0 +1,451 @@
+{% extends "base.html" %}
+{% block title %}Administração do Checklist — Form 25 VARPE{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+  <div>
+    <h1 class="h4 mb-0 fw-bold">Administração do Checklist</h1>
+    <p class="text-muted small mb-0">Gerencie seções, subseções e itens de inspeção</p>
+  </div>
+  <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+</div>
+
+<!-- Botões de ação rápida -->
+<div class="d-flex flex-wrap gap-2 mb-4">
+  <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalNovaSecao">
+    <i class="bi bi-plus-lg me-1"></i>Nova Seção
+  </button>
+  <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalNovaSubsecao">
+    <i class="bi bi-plus-lg me-1"></i>Nova Subseção
+  </button>
+  <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalNovoItem">
+    <i class="bi bi-plus-lg me-1"></i>Novo Item
+  </button>
+</div>
+
+<!-- Lista de seções -->
+{% for secao in secoes %}
+<div class="card mb-3">
+  <div class="card-header collapse-header" data-bs-toggle="collapse" data-bs-target="#sec-{{ secao.id }}">
+    <div class="d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-chevron-up collapse-icon"></i>
+        <span class="fw-bold">{{ secao.codigo }}. {{ secao.nome }}</span>
+        {% if not secao.ativo %}
+          <span class="badge bg-secondary">Inativa</span>
+        {% endif %}
+        <span class="badge bg-secondary">
+          {% set total_itens = secao.itens_diretos|length %}
+          {% for sub in secao.subsecoes %}{% set total_itens = total_itens + sub.itens|length %}{% endfor %}
+          {{ total_itens }} itens
+        </span>
+      </div>
+      <button class="btn btn-xs btn-outline-secondary" title="Editar seção"
+              onclick="event.stopPropagation()"
+              data-bs-toggle="modal" data-bs-target="#modalEditSecao{{ secao.id }}">
+        <i class="bi bi-pencil"></i>
+      </button>
+    </div>
+  </div>
+  <div class="collapse show" id="sec-{{ secao.id }}">
+    <div class="card-body p-0">
+
+      <!-- Subseções -->
+      {% for sub in secao.subsecoes %}
+      <div class="subsecao-header px-3 py-2 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <span class="fw-semibold small">{{ sub.codigo }} — {{ sub.nome }}</span>
+          {% if not sub.ativo %}<span class="badge bg-secondary" style="font-size:.65rem">Inativa</span>{% endif %}
+          <span class="text-muted" style="font-size:.7rem">({{ sub.itens|length }} itens)</span>
+        </div>
+        <button class="btn btn-xs btn-outline-secondary" title="Editar subseção"
+                data-bs-toggle="modal" data-bs-target="#modalEditSub{{ sub.id }}">
+          <i class="bi bi-pencil"></i>
+        </button>
+      </div>
+
+      <!-- Itens da subseção -->
+      {% for item in sub.itens %}
+      <div class="d-flex align-items-start gap-2 px-3 py-2 border-bottom {% if not item.ativo %}opacity-60{% endif %}">
+        <span class="item-num mt-1">{{ item.codigo }}</span>
+        <div class="flex-fill">
+          <p class="mb-0 item-desc">{{ item.descricao }}</p>
+          {% if item.tem_medicao %}
+            <span class="badge bg-info text-dark" style="font-size:.65rem"><i class="bi bi-rulers me-1"></i>Medição</span>
+          {% endif %}
+          {% if not item.ativo %}
+            <span class="badge bg-secondary" style="font-size:.65rem">Inativo</span>
+          {% endif %}
+        </div>
+        <button class="btn btn-xs btn-outline-secondary" title="Editar item"
+                data-bs-toggle="modal" data-bs-target="#modalEditItem{{ item.id }}">
+          <i class="bi bi-pencil"></i>
+        </button>
+      </div>
+      {% endfor %}
+      {% endfor %}
+
+      <!-- Itens diretos da seção -->
+      {% for item in secao.itens_diretos %}
+      <div class="d-flex align-items-start gap-2 px-3 py-2 border-bottom {% if not item.ativo %}opacity-60{% endif %}">
+        <span class="item-num mt-1">{{ item.codigo }}</span>
+        <div class="flex-fill">
+          <p class="mb-0 item-desc">{{ item.descricao }}</p>
+          {% if item.tem_medicao %}
+            <span class="badge bg-info text-dark" style="font-size:.65rem"><i class="bi bi-rulers me-1"></i>Medição</span>
+          {% endif %}
+          {% if not item.ativo %}
+            <span class="badge bg-secondary" style="font-size:.65rem">Inativo</span>
+          {% endif %}
+        </div>
+        <button class="btn btn-xs btn-outline-secondary" title="Editar item"
+                data-bs-toggle="modal" data-bs-target="#modalEditItem{{ item.id }}">
+          <i class="bi bi-pencil"></i>
+        </button>
+      </div>
+      {% endfor %}
+
+      {% if not secao.subsecoes and not secao.itens_diretos %}
+      <div class="text-center py-3 text-muted small">Nenhum item ainda.</div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar seção -->
+<div class="modal fade" id="modalEditSecao{{ secao.id }}" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title fw-semibold">Editar Seção</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" action="{{ url_for('checklist_secao_editar', secao_id=secao.id) }}">
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Nome</label>
+            <input type="text" name="nome" class="form-control form-control-sm" value="{{ secao.nome }}" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Ordem</label>
+            <input type="number" name="ordem" class="form-control form-control-sm" value="{{ secao.ordem }}">
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Status</label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="ativo" value="1" {% if secao.ativo %}checked{% endif %}>
+                <label class="form-check-label small text-success">Ativa</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="ativo" value="0" {% if not secao.ativo %}checked{% endif %}>
+                <label class="form-check-label small text-muted">Inativa</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-sm btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modais editar subseções -->
+{% for sub in secao.subsecoes %}
+<div class="modal fade" id="modalEditSub{{ sub.id }}" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title fw-semibold">Editar Subseção</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" action="{{ url_for('checklist_subsecao_editar', sub_id=sub.id) }}">
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Nome</label>
+            <input type="text" name="nome" class="form-control form-control-sm" value="{{ sub.nome }}" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Ordem</label>
+            <input type="number" name="ordem" class="form-control form-control-sm" value="{{ sub.ordem }}">
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Status</label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="ativo" value="1" {% if sub.ativo %}checked{% endif %}>
+                <label class="form-check-label small text-success">Ativa</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="ativo" value="0" {% if not sub.ativo %}checked{% endif %}>
+                <label class="form-check-label small text-muted">Inativa</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-sm btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<!-- Modais editar itens diretos + itens de subseções -->
+{% for item in secao.itens_diretos %}
+<div class="modal fade" id="modalEditItem{{ item.id }}" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title fw-semibold">Editar Item <span class="text-muted fw-normal">{{ item.codigo }}</span></h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" action="{{ url_for('checklist_item_editar', item_id=item.id) }}">
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Descrição</label>
+            <textarea name="descricao" class="form-control form-control-sm" rows="3" required>{{ item.descricao }}</textarea>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Ordem</label>
+            <input type="number" name="ordem" class="form-control form-control-sm" value="{{ item.ordem }}">
+          </div>
+          <div class="mb-2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="tem_medicao" value="1" {% if item.tem_medicao %}checked{% endif %}>
+              <label class="form-check-label small"><i class="bi bi-rulers me-1"></i>Possui campos de medição</label>
+            </div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Status</label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="ativo" value="1" {% if item.ativo %}checked{% endif %}>
+                <label class="form-check-label small text-success">Ativo</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="ativo" value="0" {% if not item.ativo %}checked{% endif %}>
+                <label class="form-check-label small text-muted">Inativo</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-sm btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% for sub in secao.subsecoes %}
+{% for item in sub.itens %}
+<div class="modal fade" id="modalEditItem{{ item.id }}" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title fw-semibold">Editar Item <span class="text-muted fw-normal">{{ item.codigo }}</span></h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" action="{{ url_for('checklist_item_editar', item_id=item.id) }}">
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Descrição</label>
+            <textarea name="descricao" class="form-control form-control-sm" rows="3" required>{{ item.descricao }}</textarea>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Ordem</label>
+            <input type="number" name="ordem" class="form-control form-control-sm" value="{{ item.ordem }}">
+          </div>
+          <div class="mb-2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="tem_medicao" value="1" {% if item.tem_medicao %}checked{% endif %}>
+              <label class="form-check-label small"><i class="bi bi-rulers me-1"></i>Possui campos de medição</label>
+            </div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Status</label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="ativo" value="1" {% if item.ativo %}checked{% endif %}>
+                <label class="form-check-label small text-success">Ativo</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="ativo" value="0" {% if not item.ativo %}checked{% endif %}>
+                <label class="form-check-label small text-muted">Inativo</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-sm btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endfor %}
+
+{% endfor %}
+
+<!-- Modal Nova Seção -->
+<div class="modal fade" id="modalNovaSecao" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title fw-semibold"><i class="bi bi-plus-circle me-1"></i>Nova Seção</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" action="{{ url_for('checklist_secao_nova') }}">
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Código</label>
+            <input type="text" name="codigo" class="form-control form-control-sm" placeholder="ex: 11" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Nome</label>
+            <input type="text" name="nome" class="form-control form-control-sm" placeholder="Nome da seção" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Ordem</label>
+            <input type="number" name="ordem" class="form-control form-control-sm" value="99">
+          </div>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-sm btn-primary">Criar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Nova Subseção -->
+<div class="modal fade" id="modalNovaSubsecao" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title fw-semibold"><i class="bi bi-plus-circle me-1"></i>Nova Subseção</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" action="{{ url_for('checklist_subsecao_nova') }}">
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Seção pai</label>
+            <select name="secao_id" class="form-select form-select-sm" required>
+              <option value="">— Selecione —</option>
+              {% for s in todas_secoes %}
+              <option value="{{ s.id }}">{{ s.codigo }}. {{ s.nome }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Código</label>
+            <input type="text" name="codigo" class="form-control form-control-sm" placeholder="ex: 11.1" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Nome</label>
+            <input type="text" name="nome" class="form-control form-control-sm" placeholder="Nome da subseção" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Ordem</label>
+            <input type="number" name="ordem" class="form-control form-control-sm" value="99">
+          </div>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-sm btn-primary">Criar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Novo Item -->
+<div class="modal fade" id="modalNovoItem" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title fw-semibold"><i class="bi bi-plus-circle me-1"></i>Novo Item</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" action="{{ url_for('checklist_item_novo') }}">
+        <div class="modal-body">
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Seção</label>
+              <select name="secao_id" id="novoItemSecao" class="form-select form-select-sm">
+                <option value="">— Nenhuma —</option>
+                {% for s in todas_secoes %}
+                <option value="{{ s.id }}">{{ s.codigo }}. {{ s.nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Subseção</label>
+              <select name="subsecao_id" class="form-select form-select-sm">
+                <option value="">— Nenhuma —</option>
+                {% for secao in secoes %}
+                  {% for sub in secao.subsecoes %}
+                  <option value="{{ sub.id }}" data-secao="{{ secao.id }}">{{ sub.codigo }} — {{ sub.nome }}</option>
+                  {% endfor %}
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Código</label>
+            <input type="text" name="codigo" class="form-control form-control-sm" placeholder="ex: 1.1.1" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Descrição</label>
+            <textarea name="descricao" class="form-control form-control-sm" rows="3" placeholder="Descrição do item de inspeção" required></textarea>
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Ordem</label>
+              <input type="number" name="ordem" class="form-control form-control-sm" value="99">
+            </div>
+            <div class="col-6 d-flex align-items-end pb-1">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="tem_medicao" value="1">
+                <label class="form-check-label small"><i class="bi bi-rulers me-1"></i>Possui medição</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-sm btn-primary">Criar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Collapse icon rotation
+document.querySelectorAll('.collapse-header').forEach(header => {
+  const target = document.querySelector(header.dataset.bsTarget);
+  if (!target) return;
+  const icon = header.querySelector('.collapse-icon');
+  target.addEventListener('hide.bs.collapse', () => icon && icon.classList.replace('bi-chevron-up', 'bi-chevron-down'));
+  target.addEventListener('show.bs.collapse', () => icon && icon.classList.replace('bi-chevron-down', 'bi-chevron-up'));
+});
+</script>
+{% endblock %}

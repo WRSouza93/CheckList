@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form 25 - Prod. - Checklist - VARPE</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <style>
+        body {
+            padding: 20px;
+            background-color: #f5f5f5;
+            padding-bottom: 100px;
+        }
+        .header-section {
+            background: linear-gradient(135deg, #082d45 0%, #0a3d5f 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .header-logo {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    max-width: 150px;
+    height: auto;
+}
+
+        .header-title-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .form-code {
+            background-color: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        .form-info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .tab-content {
+            margin-top: 20px;
+        }
+        .accordion-button {
+            background-color: #082d45;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .accordion-button:not(.collapsed) {
+            background-color: #0a3d5f;
+            color: white;
+        }
+        .accordion-button:focus {
+            box-shadow: none;
+            border-color: rgba(8, 45, 69, 0.5);
+        }
+        .accordion-button::after {
+            filter: brightness(0) invert(1);
+        }
+        .checklist-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            transition: background-color 0.2s;
+        }
+        .checklist-item:hover {
+            background-color: #f8f9fa;
+        }
+        .checklist-item:last-child {
+            border-bottom: none;
+        }
+        .item-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .item-number {
+            font-weight: bold;
+            color: #082d45;
+            min-width: 40px;
+        }
+        .item-description {
+            flex: 1 1 300px;
+            padding: 0 15px;
+        }
+        .item-checkboxes {
+            display: flex;
+            gap: 15px;
+            min-width: 280px;
+        }
+        .item-responsible {
+            min-width: 200px;
+            flex: 0 0 200px;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .checkbox-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .checkbox-group input[type="radio"] {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+        .nok-label { color: #dc3545; }
+        .ok-label { color: #28a745; }
+        .na-label { color: #6c757d; }
+        .nav-tabs .nav-link {
+            color: #082d45;
+            font-weight: 500;
+        }
+        .nav-tabs .nav-link.active {
+            background-color: #082d45;
+            color: white;
+            border-color: #082d45;
+        }
+        .incidencia-box {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 4px;
+        }
+        .incidencia-box.show {
+            display: block;
+        }
+        .incidencia-box label {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 5px;
+            display: block;
+        }
+        .incidencia-box textarea {
+            width: 100%;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            padding: 8px;
+            min-height: 80px;
+            resize: vertical;
+        }
+        .measurement-fields {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            border-radius: 4px;
+        }
+        .measurement-fields label {
+            font-weight: bold;
+            color: #0d47a1;
+            margin-bottom: 5px;
+            display: block;
+            font-size: 0.9rem;
+        }
+        .measurement-fields .row {
+            margin-bottom: 10px;
+        }
+        .measurement-fields .row:last-child {
+            margin-bottom: 0;
+        }
+        .measurement-fields input {
+            border: 1px solid #90caf9;
+        }
+        .accordion-body {
+            padding: 0;
+        }
+        .footer-buttons {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .btn-footer {
+            padding: 10px 30px;
+            font-weight: bold;
+            border: none;
+        }
+        .btn-import {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        .btn-export {
+            background: linear-gradient(135deg, #082d45 0%, #0a3d5f 100%);
+            color: white;
+        }
+        .btn-clear {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+        .btn-footer:hover {
+            opacity: 0.9;
+            color: white;
+        }
+        .select2-container {
+            width: 100% !important;
+        }
+        .select2-container--bootstrap-5 .select2-selection {
+            min-height: 38px;
+        }
+        @media (max-width: 768px) {
+            .header-logo {
+                position: static;
+                margin: 15px auto 0;
+                display: block;
+                max-width: 150px;
+            }
+            .header-section h1 {
+                font-size: 1.5rem;
+            }
+            .header-section h3 {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="header-section text-center">
+            <img src="https://static.wixstatic.com/media/70014f_7f28953899c749dfa27626c48eb2846f~mv2.png/v1/fill/w_334,h_116,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/70014f_7f28953899c749dfa27626c48eb2846f~mv2.png" 
+                 alt="VARPE Logo" class="header-logo">
+            <div class="header-title-section">
+                <span class="form-code">Form 25 - Prod. - Checklist</span>
+            </div>
+            <h1>VARPE BRASIL - TECNOLOGIA EM INSPEÇÃO E PESAGEM LTDA</h1>
+            <h3>INFORME DE INSPEÇÃO FINAL PARA CONTROLADORAS (V2000/CPA-50)</h3>
+        </div>
+
+        <!-- Form Info -->
+        <div class="form-info">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">CLIENTE:</label>
+                    <input type="text" class="form-control" id="cliente">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">OP:</label>
+                    <input type="text" class="form-control" id="op">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">N/S:</label>
+                    <input type="text" class="form-control" id="ns">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">MODELO:</label>
+                    <input type="text" class="form-control" id="modelo">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">DATA:</label>
+                    <input type="date" class="form-control" id="data">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">PRODUÇÃO:</label>
+                    <input type="text" class="form-control" id="producao">
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label fw-bold">RESPONSÁVEL:</label>
+                    <input type="text" class="form-control" id="responsavel">
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="basico-tab" data-bs-toggle="tab" data-bs-target="#basico" type="button">BÁSICO</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="banda-tab" data-bs-toggle="tab" data-bs-target="#banda" type="button">BANDA LATERAL</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="detector-tab" data-bs-toggle="tab" data-bs-target="#detector" type="button">DETECTOR METAL</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="policarbonato-tab" data-bs-toggle="tab" data-bs-target="#policarbonato" type="button">PROTEÇÕES POLICARBONATO</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="ip66-tab" data-bs-toggle="tab" data-bs-target="#ip66" type="button">IP-66</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="rampa-tab" data-bs-toggle="tab" data-bs-target="#rampa" type="button">RAMPA</button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="myTabContent">
+            <!-- BÁSICO Tab -->
+            <div class="tab-pane fade show active" id="basico" role="tabpanel">
+                <div id="basico-accordion" class="accordion"></div>
+            </div>
+
+            <!-- BANDA LATERAL Tab -->
+            <div class="tab-pane fade" id="banda" role="tabpanel">
+                <div id="banda-accordion" class="accordion mt-3"></div>
+            </div>
+
+            <!-- DETECTOR METAL Tab -->
+            <div class="tab-pane fade" id="detector" role="tabpanel">
+                <div id="detector-accordion" class="accordion mt-3"></div>
+            </div>
+
+            <!-- PROTEÇÕES POLICARBONATO Tab -->
+            <div class="tab-pane fade" id="policarbonato" role="tabpanel">
+                <div id="policarbonato-accordion" class="accordion mt-3"></div>
+            </div>
+
+            <!-- IP-66 Tab -->
+            <div class="tab-pane fade" id="ip66" role="tabpanel">
+                <div id="ip66-accordion" class="accordion mt-3"></div>
+            </div>
+
+            <!-- RAMPA Tab -->
+            <div class="tab-pane fade" id="rampa" role="tabpanel">
+                <div id="rampa-accordion" class="accordion mt-3"></div>
+            </div>
+        </div>
+
+        <!-- Input file oculto para importar -->
+        <input type="file" id="fileInput" accept=".json" style="display: none;">
+    </div>
+
+    <!-- Footer Buttons -->
+    <div class="footer-buttons">
+        <button class="btn btn-import btn-footer" onclick="importData()">
+            <i class="bi bi-upload"></i> Importar JSON
+        </button>
+        <button class="btn btn-export btn-footer" onclick="exportData()">
+            <i class="bi bi-download"></i> Exportar JSON
+        </button>
+        <button class="btn btn-clear btn-footer" onclick="clearData()">
+            <i class="bi bi-trash"></i> Limpar Dados
+        </button>
+        <button class="btn btn-secondary btn-footer" onclick="exportPDF()">
+            <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+        </button>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        // Lista de funcionários
+        const funcionarios = [
+            { id: 'wagner', text: 'Wagner' },
+            { id: 'israel', text: 'Israel' },
+            { id: 'marcos', text: 'Marcos' },
+            { id: 'eleomar', text: 'Eleomar' },
+            { id: 'giovani', text: 'Giovani' },
+            { id: 'ronaldo', text: 'Ronaldo' }
+        ];
+
+        // Dados completos do checklist BÁSICO
+        const basicoData = [
+            {
+                title: "FICHA TÉCNICA",
+                items: [
+                    {num: 1, desc: "Verificar junto à ficha técnica os opcionais da máquina.(IMPORTANTÍSSIMO)"},
+                    {num: 2, desc: "Ler atentamente as OBSERVAÇÕES da ficha técnica."},
+                    {num: 3, desc: "Verificar se as licenças estão inseridas na IHM. (Datahub e Controladora)"},
+                    {num: 4, desc: "Pesar o equipamento. (Armário + Bancada)"},
+                    {num: 5, desc: "Verificar se todos os materiais de reposição estão conforme ficha técnica. (NESTLE)"}
+                ]
+            },
+            {
+                title: "PAINEL ELÉTRICO",
+                items: [
+                    {num: 1, desc: "Placa de montagem sem riscos e/ou não conformidades"},
+                    {num: 2, desc: "Canaletas devem estar fixas, alinhadas e acabadas."},
+                    {num: 3, desc: "Verificar se as tampas das canaletas estão sem folgas nas laterais."},
+                    {num: 4, desc: "Ventiladores da porta, minitouch e PCI em bom estado e no sentido de giro correto."},
+                    {num: 5, desc: "Acrílicos de proteção. (Trafo, CP-41, CP-48, Fontes)"},
+                    {num: 6, desc: "Todas as ferritas estão em seu devido lugar."},
+                    {num: 7, desc: "Verificar se os cabos estão identificados."},
+                    {num: 8, desc: "Identificar todos os componentes do painel."},
+                    {num: 9, desc: "Etiquetas dos componentes da boteira. (Blocos e Chave Geral)"},
+                    {num: 10, desc: "Etiquetas dos portas etiquetas da boteira principal (externo)."},
+                    {num: 11, desc: "Verificar se os componentes do painel estão fixados"},
+                    {num: 12, desc: "Verificar se a quantidade de filtros dos motores está de acordo com o solicitado na Ficha Técnica. (DCI-50)"},
+                    {num: 13, desc: "Verificar estado, posicionamento, localidade e alinhamento dos portas etiquetas dos botões da botoeira. (Caratula)"},
+                    {num: 14, desc: "Colocar tampões da botoeira. (Caratula)"},
+                    {num: 15, desc: "Colocar chave(s) de bloqueio de produção (Caso contenha no Esquema Elétrico)."},
+                    {num: 16, desc: "Verificar se a tampa de canaleta foi instalada."},
+                    {num: 17, desc: "Isolar todo e qualquer cabo dentro ou fora da canaleta."},
+                    {num: 18, desc: "Verificar se existe cabos mau crimpado e mau fixados nos componentes."},
+                    {num: 19, desc: "Preencher Formulário ( Número Série dos componentes)."},
+                    {num: 20, desc: "Instalar cabos de comunicação dos Drives Delta (I/O)"},
+                    {num: 21, desc: "Jumper dos bornes estão corretos."},
+                    {num: 22, desc: "Realizar gravação do cartão em bancada e instalar na IHM"},
+                    {num: 23, desc: "Realizar a troca de jumper interno à IHM(minitouch)"},
+                    {num: 24, desc: "Configurar portas de comunicação(BIOS)"},
+                    {num: 25, desc: "Desabilitar logo fabricante(BIOS)"},
+                    {num: 26, desc: "Verificar se as licenças estão inseridas na IHM. (Datahub e Controladora)"},
+                    {num: 27, desc: "Verificar nítidez da imagem."},
+                    {num: 28, desc: "Colocar idioma conforme ficha técnica."},
+                    {num: 29, desc: "Coletar dados de inicio ao fim de peso e tempo de leitura."},
+                    {num: 30, desc: "Verificar se há riscos, trincas e amassados na tela e moldura."},
+                    {num: 31, desc: "Verificar fixação e alinhamento."},
+                    {num: 32, desc: "Etiquetas da IHM. (Wafer/MiniWafer)"},
+                    {num: 33, desc: "Etiqueta de atulização de IHM. (Wafer/MiniWafer)"},
+                    {num: 34, desc: "Etiqueta Varpe frontal da IHM.(Wafer/MiniWafer)"},
+                    {num: 35, desc: "Fixar cabos de comunicação, fonte, IHM, etc."},
+                    {num: 36, desc: "Preencher Formulário ( Número Série da IHM e Cartão )."},
+                    {num: 37, desc: "Identificar todos os cabos conectado á IHM( Comunicação, USB etc)"}
+                ]
+            },
+            {
+                title: "CAIXA DE PASSAGEM E CHICOTES",
+                items: [
+                    {num: 1, desc: "Verificar fixação dos prensa cabos e tampões."},
+                    {num: 2, desc: "Fixar caixa de passagem (todos os parafusos da tampa devem estar na mesma)"},
+                    {num: 3, desc: "Colocar ferrita da célula de carga está na caixa de passagem."},
+                    {num: 4, desc: "Cortar e preparar chicotes elétricos externos"},
+                    {num: 5, desc: "Montagem/preparação dos chicotes elétricos."},
+                    {num: 6, desc: "Fixar chicotes elétricos na parte externa do armário."},
+                    {num: 7, desc: "Realizar instalações dos chicotes elétricos externos dentro do armário."},
+                    {num: 8, desc: "Realizar instalações dos chicotes elétricos externos na caixa de passagem"},
+                    {num: 9, desc: "Colocar identificação dos chicotes elétricos."},
+                    {num: 10, desc: "Realizar passagem e acabamento dos cabos na estrutura da máquina."},
+                    {num: 11, desc: "Colocar a etiqueta de tensão das caixas de passagem."},
+                    {num: 12, desc: "Isolar todos os condutores da caixa de passagem"},
+                    {num: 13, desc: "Identificar todos os chicotes externos ao armário"},
+                    {num: 14, desc: "Instalar conectores aéreo nos servo motores(identificar)"},
+                    {num: 15, desc: "Instalar conectores aéreo nos chicotes externos (identificar)"}
+                ]
+            },
+            {
+                title: "TRANSPORTADORES",
+                items: [
+                    {num: 1, desc: "Presilhas de fixação dos transportadores fixadas e com a pressão correta."},
+                    {num: 2, desc: "Espaçamentos dos transportadores."},
+                    {num: 3, desc: "Verificar se os transportadores não estão girando. (Niveladores Fixados)"},
+                    {num: 4, desc: "Correias e eixos sem ruídos"},
+                    {num: 5, desc: "Correias estão com a espessura, cor, aderencia, tipo de material, emendas, vincos e alinhamento correto."},
+                    {num: 6, desc: "Tensores, niveladores e porcas de contra aperto estão presentes e fixadas nos transportadores."},
+                    {num: 7, desc: "Verificar travamento (contra-perto) dos parafusos de nivelamento dos transportadores."},
+                    {num: 8, desc: "Altura de trabalho. (Curso de +/- 35mm)"},
+                    {num: 9, desc: "Verificar fixação de todo conjunto da fotocélula. (Sensor, Espelho e Grampo Cross Clamp)"},
+                    {num: 10, desc: "Encaixe e desencaixe dos transportadores está suave."},
+                    {num: 11, desc: "Movimento oscilante do eixo movido dos transportadores está justo e suave."},
+                    {num: 12, desc: "Verificar se os tableros estão fixados. (Parafusos devem estar: fixos, alojados e presente)"},
+                    {num: 13, desc: "Verificar as cores padrão dos eixos. (Entrada e Saida: Verm./Amar. -- Peso: Verm./Azul/Amar.)"},
+                    {num: 14, desc: "Alinhar e nivelar os transportadores."},
+                    {num: 15, desc: "Colocar etiquetas dos transportadores."},
+                    {num: 16, desc: "Fixar e ajustar guias de entrada / peso / saída (opcional)"},
+                    {num: 17, desc: "Colocar tampões dos tubo de apoio dos transportadores."},
+                    {num: 18, desc: "Pesar transportador de PESO depois de finalisado"}
+                ]
+            },
+            {
+                title: "BRAÇOS E AGREGADOS",
+                items: [
+                    {num: 1, desc: "Colocar chapa de proteção entre os braços e armário(parte traseira)"},
+                    {num: 2, desc: "Verificar fixação dos braços de apoio dos transportadores."},
+                    {num: 3, desc: "Braços devem estar sem folgas nas laerais do armário."},
+                    {num: 4, desc: "Verificar fixação da barra de apoio dos braços do armário."},
+                    {num: 5, desc: "Cortar e fixar tubo quadrado(40mmx40mm) de apoio dos braços"},
+                    {num: 6, desc: "Colocar tampões dos tubo de apoio dos transportadores."}
+                ]
+            },
+            {
+                title: "CÉLULA DE CARGA",
+                items: [
+                    {num: 1, desc: "Verificar se a célula de carga está bem fixada."},
+                    {num: 2, desc: "Fixar proteção de inox da célula de carga."},
+                    {num: 3, desc: "Preencher Formulário com o número de série da célula de carga."},
+                    {num: 4, desc: "Realizar acabamento dos fios."},
+                    {num: 5, desc: "Verificar a conexão dos fios das células de carga. (Caixa de passagem e PCI)"},
+                    {num: 6, desc: "Identificar cabo elétrico da célula de carga"},
+                    {num: 7, desc: "Travamento da célula. (Antes de embalar o equipamento)"}
+                ]
+            },
+            {
+                title: "REJEITO",
+                items: [
+                    {num: 1, desc: "Verificar se o sentido de rejeição está conforme ficha técnica."},
+                    {num: 2, desc: "Fixação da pala. (Quebrar cantos vivos)"},
+                    {num: 3, desc: "Alinhamento da pala em relação ao transportador."},
+                    {num: 4, desc: "Fixação do suporte do rejeito."},
+                    {num: 5, desc: "Fixação do cilindro no suporte."},
+                    {num: 6, desc: "Fixação da válvula do rejeito."},
+                    {num: 7, desc: "Fixação do conector da solenoide."},
+                    {num: 8, desc: "Fixação dos conectores em geral. (Fluxo, silenciador, cotovelos)"},
+                    {num: 9, desc: "Travamento dos parafusos em geral."},
+                    {num: 10, desc: "Encaixe das mangueiras de ar. (Sem vazamentos)"},
+                    {num: 11, desc: "Etiqueta do cilindro pneumático colocada."},
+                    {num: 12, desc: "Identificar mangueira, válvula, conectores e cilindro pneumático"},
+                    {num: 13, desc: "Identificar conector , solenóide e cabo elétrico da válvula pneumática"},
+                    {num: 14, desc: "Testar confirmação de rejeito."},
+                    {num: 15, desc: "Verificar avanço/recuo suave do cilindro."},
+                    {num: 16, desc: "Funcionamento do rejeito."}
+                ]
+            },
+            {
+                title: "MOTORES",
+                items: [
+                    {num: 1, desc: "Posicionamento dos motores com relação aos braços da máquina."},
+                    {num: 2, desc: "Proteções dos eixos dos motores(tampas e/ou caixa de inox etc)"},
+                    {num: 3, desc: "Ruído dos motores."},
+                    {num: 4, desc: "Aparência dos motores."},
+                    {num: 5, desc: "Ajustar eixos, chavetas e engrenagens"},
+                    {num: 6, desc: "Alinhar(lateralmente) e fixar engrenagens motriz e movida"},
+                    {num: 7, desc: "Verificar tensão da corrente(transmissão) dos motores."},
+                    {num: 8, desc: "Verificar fixação dos motores na campana ou flange"},
+                    {num: 9, desc: "Verificar fixação da tampa da caixa de passagem"},
+                    {num: 10, desc: "Verificar fixação dos prensa cabos"},
+                    {num: 11, desc: "Preencher Formulário com o número de série do motor."}
+                ]
+            },
+            {
+                title: "MONTAGEM E ACABAMENTO EXTERNO DO COFRE",
+                items: [
+                    {num: 1, desc: "Pintura em bom estado. (Sem riscos , sem manchas e cor com mesma tonalidade)"},
+                    {num: 2, desc: "Verificar acabamento do escovado ou polimento do armário de inox."},
+                    {num: 3, desc: "Cortar pés do armário de máquina com bancada. (Exceto com restrição em ficha técnica -Verificar com Engenharia)"},
+                    {num: 4, desc: "Colar tampões dos pés do armário."},
+                    {num: 5, desc: "Colocar pés que tenha no mínimo curso de mais ou menos(+/-) 35 milímetros."},
+                    {num: 6, desc: "Fixar porcas dos pés do equipamento em geral."},
+                    {num: 7, desc: "Colocar tampões na lateral do armário. (Entrada de cabos)"},
+                    {num: 8, desc: "Tampar todo e qualquer furo na lateral do armário."},
+                    {num: 9, desc: "Colocar guarnição na porta do armário."},
+                    {num: 10, desc: "Colocar puxador na porta do armário."},
+                    {num: 11, desc: "Alinhar, fixar e travar dobradiças e fechos da porta do armário."},
+                    {num: 12, desc: "Ajustar lingueta do fecho retirando folga(vibração) da porta do armário."},
+                    {num: 13, desc: "Ajustar e fixar varão(cofre especial) da porta do armário."},
+                    {num: 14, desc: "Colocar chave da porta do armário"},
+                    {num: 15, desc: "Verificar estado e fixação das grelhas dos filtros."},
+                    {num: 16, desc: "Colocar filtros limpos"},
+                    {num: 17, desc: "Etiqueta marca Varpe colocada. (Parte frontal do armário)"},
+                    {num: 18, desc: "Etiquetas de dados de calibração colocadas."},
+                    {num: 19, desc: "Etiqueta da certificação NR-12."},
+                    {num: 20, desc: "Etiqueta da porta do painel colocada. (Troca de Tensão e Atenção)"},
+                    {num: 21, desc: "Etiquetas dos filtros colocadas."},
+                    {num: 22, desc: "Etiqueta de tensão de entrada colocada. (Alimentação)"},
+                    {num: 23, desc: "Colocar todas as etiquetas padrão dos equipamentos NESTLÉ. (SEM EXCESSÃO)"},
+                    {num: 24, desc: "Verificar posicionamento de cabos e conduítes"},
+                    {num: 25, desc: "Verificar prensa cabos em geral se estão fixados e prensando."},
+                    {num: 26, desc: "Pesar cofre depois de finalisado"}
+                ]
+            },
+            {
+                title: "ACABAMENTO INTERNO DO COFRE",
+                items: [
+                    {num: 1, desc: "Limpar armário(IMPORTANTÍSSIMO)."},
+                    {num: 2, desc: "Verificar fixação da botoeira principal e tampa cega."},
+                    {num: 3, desc: "Instalar ventilador da porta(dar acabamento no chicote)"},
+                    {num: 4, desc: "Instalar sinaleiro (dar acabamento no chicote)"},
+                    {num: 5, desc: "Colocar porta documentos na porta do armário"},
+                    {num: 6, desc: "Colocar separador entre o armário e placa de montagem."},
+                    {num: 7, desc: "Colocar e fixar placa de montagem elétrica (almofada) dentro do armário"},
+                    {num: 8, desc: "Colocar ferrita de alimentação na base o armário."},
+                    {num: 9, desc: "Colocar sílica."}
+                ]
+            },
+            {
+                title: "DOCUMENTAÇÃO EM GERAL",
+                items: [
+                    {num: 1, desc: "Colocar manuais no painel. (Inversor, ar condicionado etc)"},
+                    {num: 2, desc: "Colocar Laudo NR-12."},
+                    {num: 3, desc: "Colocar certificado de calibração"},
+                    {num: 4, desc: "Colocar esquema eletrico. (Verificar : Nº de páginas, cliente, Nº de série, Tensão de alimentação coerene com ficha técnica etc)"},
+                    {num: 5, desc: "IMPORTANTE: Para máquinas NESTLÉ deve estar incluso os manuais de todos os componentes."}
+                ]
+            },
+            {
+                title: "FUNCIONALIDADE DO EQUIPAMENTO EM GERAL",
+                items: [
+                    {num: 1, desc: "Testar materiais de reposição. (Motores, drives, placas PCI, etc.)"},
+                    {num: 2, desc: "Realizar a checagem dos contatos secos."},
+                    {num: 3, desc: "Testar linha de comando"},
+                    {num: 4, desc: "Fazer comprovação das luzes. (Térmicos e Rede)"},
+                    {num: 5, desc: "Verificar funcionamento da tomada."},
+                    {num: 6, desc: "Verificar se a corrente nominal do disjuntor está de acordo com a corrente do motor. (Esquema Elétrico)", hasMeasurement: true},
+                    {num: 7, desc: "Verificar funcionamento dos disjuntores térmicos. (Ajustar corrente)", hasMeasurement: true},
+                    {num: 8, desc: "Funcionamento do alarme sonoro e visual. (Sinaleiro)"},
+                    {num: 9, desc: "Funcionamento de periféricos: USB, porta RS232, ethernet, saída de servo, alarme temperatura. (Conforme ficha técnica)"},
+                    {num: 10, desc: "Testar saída nobreak. (Opcional)"},
+                    {num: 11, desc: "Testar botoeira externa. (Opcional)"},
+                    {num: 12, desc: "Transformador externo: Fixar, instalar e testar (Opcional)"}
+                ]
+            },
+            {
+                title: "DETALHES FINAL",
+                items: [
+                    {num: 1, desc: "Limpar máquina (IMPORTANTÍSSIMO)."},
+                    {num: 2, desc: "IMPORTANTE: Tirar fotos detalhadas do equipamento."}
+                ]
+            },
+            {
+                title: "TESTE FINAL (PESAGEM)",
+                items: [
+                    {num: 1, desc: "Realizar parametrização em geral do equipamento"},
+                    {num: 2, desc: "Realizar coletas de peso"},
+                    {num: 3, desc: "Testar rejeito"},
+                    {num: 4, desc: "Testar todos os opcionais do equipamento"},
+                    {num: 5, desc: "Preencher certificado de calibração"},
+                    {num: 6, desc: "Verificar a variação para 50 Hertz no caso de máquinas com varíação automática."},
+                    {num: 7, desc: "Etiquetas de dados de calibração colocada preenchida"},
+                    {num: 8, desc: "Etiqueta NR-12 preenchida"}
+                ]
+            }
+        ];
+
+        // Dados dos outros checklists
+        const bandaData = [
+            {num: 1, desc: "Alinhamento e nivelamento das Bandas laterais."},
+            {num: 2, desc: "Verificar altura de trabalho com relação ao transportador."},
+            {num: 3, desc: "Espaçamento entre as bandas. (Abraçamento do produto)"},
+            {num: 4, desc: "Verificar ruídos da correias e eixos."},
+            {num: 5, desc: "Verificar uniformidade das correias. (Sem ondulações)"},
+            {num: 6, desc: "Verifiacar fixação dos mancais traseiro e dianteiro."},
+            {num: 7, desc: "Verificar o giro das polias motora e motriz. (Movimento suave e sem folga)"},
+            {num: 8, desc: "Verificar se todas as peças que compõe as bandas estão na mesma: trava cilíndrica parte inferior, tensores, niveladores e porcas de contra aperto fixadas"},
+            {num: 9, desc: "Travamento dos parafusos de regulagem colocados e fixados."},
+            {num: 10, desc: "Fixar chapa da proteção das correias."},
+            {num: 11, desc: "Travar porca dos pés do suporte das bandas."},
+            {num: 12, desc: "Verificar alinhamento, fixação, posição, e vibração dos motores."},
+            {num: 13, desc: "Verificar instalação elétrica. (Acabamento de conduítes e tampa da caixa de ligação fixados)"},
+            {num: 14, desc: "Verificar deslocamento lateral das bandas."},
+            {num: 15, desc: "Veficar funcionamento do fuso e manivela. (Movimento suave e sem folga)"},
+            {num: 16, desc: "Verificar colocação da régua (PROJETO VARPE)"}
+        ];
+
+        const detectorData = [
+            {num: 1, desc: "Verificar a existência dos manuais."},
+            {num: 2, desc: "Verificar a existência dos corpos de prova."},
+            {num: 3, desc: "Verificar a fixação do DM na estrutura."},
+            {num: 4, desc: "Verificar as medidas do DM confere com a ficha técnica."},
+            {num: 5, desc: "Verificar se o modelo do DM confere com a ficha técnica."},
+            {num: 6, desc: "Realizar os testes com os corpos de prova."},
+            {num: 7, desc: "Verificar a existência das tabelas. (Características elétricas)"},
+            {num: 8, desc: "Realizar Certificado de Calibração"}
+        ];
+
+        const policarbonatoData = [
+            {num: 1, desc: "Verificar se a espessura está de acordo com a ficha técnica."},
+            {num: 2, desc: "Verificar fechamento e travamento das portas. (Fechos e chaves)"},
+            {num: 3, desc: "Verificar fixação dos embudos. (Dobras uniformes)"},
+            {num: 4, desc: "Verificar fixação tampas traseira, dianteira, superior, inferior, puxador, batentes, etc."},
+            {num: 5, desc: "Verificar fixação do sensores eletromecânico e/ou magnéticos."},
+            {num: 6, desc: "Verificar a fixação dos sensores de confirmação de rejeito."},
+            {num: 7, desc: "Retirar todo e qualquer canto vivo."},
+            {num: 8, desc: "Verificar a existência de riscos, trincas e tonalidade de cor."},
+            {num: 9, desc: "Dobradiças das portas devem estar fixa e intertravadas. (Esquerda/Direita)"}
+        ];
+
+        const ip66Data = [
+            {num: 1, desc: "Verificar fechamento,alinhamento e posicionamento da proteção de tela."},
+            {num: 2, desc: "Verificar fechamento,alinhamento e posicionamento da proteção dos ventiladores."},
+            {num: 3, desc: "Verificar fechamento,alinhamento e posicionamento da proteção dos motores."},
+            {num: 4, desc: "Colocar proteção de tela nos equipamentos VITARELLA."},
+            {num: 5, desc: "OBS: TODAS ESTAS PROTEÇÕES DEVEM SER HERMETICAMENTE FECHADAS."}
+        ];
+
+        const rampaData = [
+            {num: 1, desc: "Cortar tubos conforme desenho(Engenharia)"},
+            {num: 2, desc: "Fixar tubos nos suportes de fixação"},
+            {num: 3, desc: "Agregar todos os tubos e montar na maca da rampa"},
+            {num: 4, desc: "Fixar rampa no chassi do equipamento"},
+            {num: 5, desc: "Verificar se todos os parafusos estão apertados."},
+            {num: 6, desc: "Montar os eixos e verificar se estão rodando livremente."},
+            {num: 7, desc: "Verificar a existência da espuma de amortecimento no final da rampa."},
+            {num: 8, desc: "Verificar inclinação e altura, conforme pedido na Ficha Técnica."},
+            {num: 9, desc: "Verificar fixação da rampa no transportador."},
+            {num: 10, desc: "Verificar se foi colocada as etiquetas."},
+            {num: 11, desc: "Colocar pés que tenha no mínimo curso de mais ou menos(+/-) 35 milímetros."},
+            {num: 12, desc: "Verificar a existência da ponteira na guia."},
+            {num: 13, desc: "Pesar Rampa"}
+        ];
+
+        // Função para criar item de checklist com select de funcionários
+        function createChecklistItem(num, desc, prefix, hasMeasurement = false) {
+            const itemId = `${prefix}_${num}`;
+            
+            let measurementFieldsHtml = '';
+            if (hasMeasurement) {
+                measurementFieldsHtml = `
+                    <div class="measurement-fields">
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <label for="${itemId}_valor_ideal">Valor Ideal:</label>
+                                <input type="text" class="form-control form-control-sm" id="${itemId}_valor_ideal" placeholder="Ex: 10A">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="${itemId}_valor_medido">Valor Medido:</label>
+                                <input type="text" class="form-control form-control-sm" id="${itemId}_valor_medido" placeholder="Ex: 9.8A">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="${itemId}_equipamento">Equipamento Utilizado:</label>
+                                <input type="text" class="form-control form-control-sm" id="${itemId}_equipamento" placeholder="Ex: TAG-001 ou Multímetro Fluke">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="checklist-item" data-item-id="${itemId}">
+                    <div class="item-row">
+                        <span class="item-number">${num}.</span>
+                        <span class="item-description">${desc}</span>
+                        <div class="item-checkboxes">
+                            <div class="checkbox-group">
+                                <input type="radio" name="${itemId}" value="NOK" id="${itemId}_nok" onchange="handleCheckboxChange('${itemId}', 'NOK')">
+                                <label for="${itemId}_nok" class="nok-label">NOK</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="radio" name="${itemId}" value="OK" id="${itemId}_ok" onchange="handleCheckboxChange('${itemId}', 'OK')">
+                                <label for="${itemId}_ok" class="ok-label">OK</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="radio" name="${itemId}" value="NA" id="${itemId}_na" onchange="handleCheckboxChange('${itemId}', 'NA')">
+                                <label for="${itemId}_na" class="na-label">N/A</label>
+                            </div>
+                        </div>
+                        <div class="item-responsible">
+                            <select class="form-select select2-employee" id="${itemId}_resp" data-item-id="${itemId}">
+                                <option value="">Selecione...</option>
+                                <option value="eleomar">Eleomar</option>
+                                <option value="giovani">Giovani</option>
+                                <option value="israel">Israel</option>
+                                <option value="marcos">Marcos</option>
+                                <option value="ronaldo">Ronaldo</option>
+                                <option value="wagner">Wagner</option>
+                            </select>
+                        </div>
+                    </div>
+                    ${measurementFieldsHtml}
+                    <div class="incidencia-box" id="${itemId}_incidencia">
+                        <label>Descreva a incidência:</label>
+                        <textarea id="${itemId}_incidencia_text" placeholder="Detalhe o problema encontrado..."></textarea>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Função para lidar com mudanças nos checkboxes
+        function handleCheckboxChange(itemId, value) {
+            const incidenciaBox = document.getElementById(`${itemId}_incidencia`);
+            if (value === 'NOK') {
+                incidenciaBox.classList.add('show');
+            } else {
+                incidenciaBox.classList.remove('show');
+                document.getElementById(`${itemId}_incidencia_text`).value = '';
+            }
+            saveToLocalStorage();
+        }
+
+        // Função para criar accordion section
+        function createAccordionSection(sectionData, prefix, parentId) {
+            return sectionData.map((section, index) => {
+                const sectionId = `${prefix}_section_${index}`;
+                const itemsHtml = section.items.map(item => 
+                    createChecklistItem(item.num, item.desc, `${prefix}_${index}`, item.hasMeasurement || false)
+                ).join('');
+                
+                return `
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${sectionId}">
+                                ${section.title}
+                            </button>
+                        </h2>
+                        <div id="${sectionId}" class="accordion-collapse collapse" data-bs-parent="#${parentId}">
+                            <div class="accordion-body">
+                                ${itemsHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Função para criar accordion simples
+        function createSimpleAccordion(items, prefix, title, parentId) {
+            const accordionId = `${prefix}_section`;
+            const itemsHtml = items.map(item => 
+                createChecklistItem(item.num, item.desc, prefix)
+            ).join('');
+            
+            return `
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#${accordionId}">
+                            ${title}
+                        </button>
+                    </h2>
+                    <div id="${accordionId}" class="accordion-collapse collapse show" data-bs-parent="#${parentId}">
+                        <div class="accordion-body">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Preencher accordions
+        document.getElementById('basico-accordion').innerHTML = createAccordionSection(basicoData, 'basico', 'basico-accordion');
+        document.getElementById('banda-accordion').innerHTML = createSimpleAccordion(bandaData, 'banda', 'BANDAS LATERAIS', 'banda-accordion');
+        document.getElementById('detector-accordion').innerHTML = createSimpleAccordion(detectorData, 'detector', 'DETECTOR DE METAIS', 'detector-accordion');
+        document.getElementById('policarbonato-accordion').innerHTML = createSimpleAccordion(policarbonatoData, 'policarbonato', 'PROTEÇÕES EXTERNAS (POLICARBONATO)', 'policarbonato-accordion');
+        document.getElementById('ip66-accordion').innerHTML = createSimpleAccordion(ip66Data, 'ip66', 'PROTEÇÕES IP-66', 'ip66-accordion');
+        document.getElementById('rampa-accordion').innerHTML = createSimpleAccordion(rampaData, 'rampa', 'RAMPA', 'rampa-accordion');
+
+        // Inicializar Select2 nos selects de funcionários
+        $(document).ready(function() {
+            $('.select2-employee').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Selecione o responsável',
+                allowClear: true,
+                language: {
+                    noResults: function() {
+                        return "Nenhum resultado encontrado";
+                    }
+                }
+            });
+
+            $('.select2-employee').on('change', function() {
+                saveToLocalStorage();
+            });
+        });
+
+        // Função de exportação
+        // Função de exportação
+function exportData() {
+    const nsValue = document.getElementById('ns').value || 'sem_ns';
+    const data = {
+        informacoes: {
+            cliente: document.getElementById('cliente').value,
+            op: document.getElementById('op').value,
+            ns: nsValue,
+            modelo: document.getElementById('modelo').value,
+            data: document.getElementById('data').value,
+            producao: document.getElementById('producao').value,
+            responsavel: document.getElementById('responsavel').value
+        },
+        checklists: []
+    };
+
+    document.querySelectorAll('.checklist-item').forEach(item => {
+        const itemId = item.getAttribute('data-item-id');
+        const radioChecked = item.querySelector(`input[name="${itemId}"]:checked`);
+        const responsible = document.getElementById(`${itemId}_resp`)?.value;
+        const incidenciaText = document.getElementById(`${itemId}_incidencia_text`)?.value;
+        
+        // Campos de medição
+        const valorIdeal = document.getElementById(`${itemId}_valor_ideal`)?.value;
+        const valorMedido = document.getElementById(`${itemId}_valor_medido`)?.value;
+        const equipamento = document.getElementById(`${itemId}_equipamento`)?.value;
+
+        if (radioChecked || responsible || incidenciaText || valorIdeal || valorMedido || equipamento) {
+            const itemData = {
+                item: itemId,
+                status: radioChecked?.value || null,
+                responsavel: responsible || null,
+                incidencia: incidenciaText || null
+            };
+            
+            // Adicionar dados de medição se existirem
+            if (valorIdeal || valorMedido || equipamento) {
+                itemData.medicao = {
+                    valorIdeal: valorIdeal || null,
+                    valorMedido: valorMedido || null,
+                    equipamento: equipamento || null
+                };
+            }
+            
+            data.checklists.push(itemData);
+        }
+    });
+
+    const dataStr = JSON.stringify(data, null, 2);
+    const fileName = `inspecao_${nsValue}_${new Date().toISOString().split('T')[0]}.json`;
+    
+    // Criar um blob e forçar o download com o diálogo "Salvar como"
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    
+    // Usar a File System Access API se disponível (Chrome, Edge moderno)
+    if ('showSaveFilePicker' in window) {
+        // API moderna - permite escolher local
+        const opts = {
+            suggestedName: fileName,
+            types: [{
+                description: 'Arquivo JSON',
+                accept: {'application/json': ['.json']},
+            }],
+        };
+        
+        window.showSaveFilePicker(opts).then(fileHandle => {
+            return fileHandle.createWritable();
+        }).then(writable => {
+            writable.write(dataBlob);
+            writable.close();
+            alert('Dados exportados com sucesso!');
+        }).catch(err => {
+            // Se o usuário cancelar, não mostra erro
+            if (err.name !== 'AbortError') {
+                console.error('Erro ao salvar:', err);
+            }
+        });
+    } else {
+        // Fallback para navegadores mais antigos - usa o método tradicional
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        
+        // Adicionar ao DOM temporariamente para funcionar no Firefox
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Limpar o URL após um delay
+        setTimeout(() => {
+            URL.revokeObjectURL(url);
+        }, 100);
+        
+        alert('Dados exportados com sucesso!');
+    }
+}
+
+
+        // Função de importação
+        function importData() {
+            const fileInput = document.getElementById('fileInput');
+            fileInput.click();
+            
+            fileInput.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        
+                        if (data.informacoes) {
+                            document.getElementById('cliente').value = data.informacoes.cliente || '';
+                            document.getElementById('op').value = data.informacoes.op || '';
+                            document.getElementById('ns').value = data.informacoes.ns || '';
+                            document.getElementById('modelo').value = data.informacoes.modelo || '';
+                            document.getElementById('data').value = data.informacoes.data || '';
+                            document.getElementById('producao').value = data.informacoes.producao || '';
+                            document.getElementById('responsavel').value = data.informacoes.responsavel || '';
+                        }
+
+                        if (data.checklists && Array.isArray(data.checklists)) {
+                            data.checklists.forEach(item => {
+                                if (item.status) {
+                                    const radio = document.getElementById(`${item.item}_${item.status.toLowerCase()}`);
+                                    if (radio) {
+                                        radio.checked = true;
+                                        handleCheckboxChange(item.item, item.status);
+                                    }
+                                }
+
+                                if (item.responsavel) {
+                                    const select = $(`#${item.item}_resp`);
+                                    if (select.length) {
+                                        select.val(item.responsavel).trigger('change');
+                                    }
+                                }
+
+                                if (item.incidencia) {
+                                    const textarea = document.getElementById(`${item.item}_incidencia_text`);
+                                    if (textarea) {
+                                        textarea.value = item.incidencia;
+                                    }
+                                }
+                                
+                                // Carregar dados de medição
+                                if (item.medicao) {
+                                    const valorIdealInput = document.getElementById(`${item.item}_valor_ideal`);
+                                    const valorMedidoInput = document.getElementById(`${item.item}_valor_medido`);
+                                    const equipamentoInput = document.getElementById(`${item.item}_equipamento`);
+                                    
+                                    if (valorIdealInput) valorIdealInput.value = item.medicao.valorIdeal || '';
+                                    if (valorMedidoInput) valorMedidoInput.value = item.medicao.valorMedido || '';
+                                    if (equipamentoInput) equipamentoInput.value = item.medicao.equipamento || '';
+                                }
+                            });
+                        }
+
+                        saveToLocalStorage();
+                        alert('Dados importados com sucesso!');
+                    } catch (error) {
+                        alert('Erro ao importar arquivo: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+                fileInput.value = '';
+            };
+        }
+
+        // Função para limpar dados
+        function clearData() {
+            if (confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.')) {
+                document.getElementById('cliente').value = '';
+                document.getElementById('op').value = '';
+                document.getElementById('ns').value = '';
+                document.getElementById('modelo').value = '';
+                document.getElementById('data').value = '';
+                document.getElementById('producao').value = '';
+                document.getElementById('responsavel').value = '';
+
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.checked = false;
+                });
+
+                $('.select2-employee').val(null).trigger('change');
+
+                document.querySelectorAll('.incidencia-box').forEach(box => {
+                    box.classList.remove('show');
+                });
+                
+                document.querySelectorAll('textarea[id$="_incidencia_text"]').forEach(textarea => {
+                    textarea.value = '';
+                });
+                
+                // Limpar campos de medição
+                document.querySelectorAll('input[id$="_valor_ideal"], input[id$="_valor_medido"], input[id$="_equipamento"]').forEach(input => {
+                    input.value = '';
+                });
+
+                localStorage.clear();
+                alert('Todos os dados foram limpos!');
+            }
+        }
+
+        // Salvar automaticamente no localStorage
+        function saveToLocalStorage() {
+            const allInputs = document.querySelectorAll('input, textarea, select');
+            allInputs.forEach(input => {
+                if (input.type === 'radio' && input.checked) {
+                    localStorage.setItem(input.name, input.value);
+                } else if (input.type !== 'radio') {
+                    localStorage.setItem(input.id, input.value);
+                }
+            });
+        }
+
+        // Carregar dados salvos
+        function loadSavedData() {
+            const allInputs = document.querySelectorAll('input, textarea, select');
+            allInputs.forEach(input => {
+                const savedValue = localStorage.getItem(input.id);
+                if (savedValue) {
+                    if (input.type === 'radio') {
+                        const savedRadio = localStorage.getItem(input.name);
+                        if (input.value === savedRadio) {
+                            input.checked = true;
+                            handleCheckboxChange(input.name, input.value);
+                        }
+                    } else if (input.tagName === 'SELECT') {
+                        $(input).val(savedValue).trigger('change');
+                    } else {
+                        input.value = savedValue;
+                    }
+                }
+            });
+        }
+
+        // Auto-save para inputs
+        function setupAutoSave() {
+            const allInputs = document.querySelectorAll('input[type="text"], input[type="date"], textarea');
+            allInputs.forEach(input => {
+                input.addEventListener('change', saveToLocalStorage);
+                input.addEventListener('blur', saveToLocalStorage);
+            });
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            setupAutoSave();
+            setTimeout(() => {
+                loadSavedData();
+            }, 500);
+        });
+
+    async function exportPDF() {
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        let yPosition = 15;
+        const margin = 10;
+        const lineHeight = 5;
+
+        // Header
+        doc.setFontSize(16);
+        doc.setTextColor(8, 45, 69);
+        doc.text('VARPE BRASIL', margin, yPosition);
+        yPosition += 8;
+        
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text('INFORME DE INSPEÇÃO FINAL PARA CONTROLADORAS (V2000/CPA-50)', margin, yPosition);
+        yPosition += 10;
+
+        // Informações do Formulário
+        doc.setFontSize(11);
+        doc.setTextColor(8, 45, 69);
+        doc.text('INFORMAÇÕES GERAIS', margin, yPosition);
+        yPosition += 6;
+
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
+        const infos = [
+            `Cliente: ${document.getElementById('cliente').value || 'N/A'}`,
+            `OP: ${document.getElementById('op').value || 'N/A'}`,
+            `N/S: ${document.getElementById('ns').value || 'N/A'}`,
+            `Modelo: ${document.getElementById('modelo').value || 'N/A'}`,
+            `Data: ${document.getElementById('data').value || 'N/A'}`,
+            `Produção: ${document.getElementById('producao').value || 'N/A'}`,
+            `Responsável: ${document.getElementById('responsavel').value || 'N/A'}`
+        ];
+
+        infos.forEach(info => {
+            if (yPosition + 5 > pageHeight - 10) {
+                doc.addPage();
+                yPosition = 15;
+            }
+            doc.text(info, margin + 5, yPosition);
+            yPosition += 5;
+        });
+
+        yPosition += 5;
+
+        // Seções de Checklist
+        const sections = ['basico', 'banda', 'detector', 'policarbonato', 'ip66', 'rampa'];
+        const sectionTitles = {
+            basico: 'BÁSICO',
+            banda: 'BANDA LATERAL',
+            detector: 'DETECTOR METAL',
+            policarbonato: 'PROTEÇÕES POLICARBONATO',
+            ip66: 'IP-66',
+            rampa: 'RAMPA'
+        };
+
+        sections.forEach(section => {
+            if (yPosition + 10 > pageHeight - 10) {
+                doc.addPage();
+                yPosition = 15;
+            }
+
+            // Título da seção
+            doc.setFontSize(12);
+            doc.setTextColor(8, 45, 69);
+            doc.text(sectionTitles[section], margin, yPosition);
+            yPosition += 8;
+
+            // Itens de checklist
+            document.querySelectorAll(`[data-item-id^="${section}_"]`).forEach(item => {
+                if (yPosition + 8 > pageHeight - 10) {
+                    doc.addPage();
+                    yPosition = 15;
+                }
+
+                const itemId = item.getAttribute('data-item-id');
+                const radioChecked = item.querySelector(`input[name="${itemId}"]:checked`);
+                const responsible = document.getElementById(`${itemId}_resp`)?.value || 'N/A';
+                const status = radioChecked?.value || 'N/A';
+                const incidencia = document.getElementById(`${itemId}_incidencia_text`)?.value;
+
+                const valorIdeal = document.getElementById(`${itemId}_valor_ideal`)?.value;
+                const valorMedido = document.getElementById(`${itemId}_valor_medido`)?.value;
+                const equipamento = document.getElementById(`${itemId}_equipamento`)?.value;
+
+                // Número e status
+                doc.setFontSize(9);
+                doc.setTextColor(0, 0, 0);
+                
+                let statusColor = [0, 0, 0];
+                if (status === 'OK') statusColor = [40, 167, 69];
+                else if (status === 'NOK') statusColor = [220, 53, 69];
+                else if (status === 'NA') statusColor = [108, 117, 125];
+
+                doc.setTextColor(...statusColor);
+                doc.text(`[${status}]`, margin + 5, yPosition);
+                
+                doc.setTextColor(0, 0, 0);
+                doc.text(`${responsible}`, margin + 25, yPosition);
+
+                yPosition += 4;
+
+                if (incidencia) {
+                    doc.setTextColor(220, 53, 69);
+                    doc.setFontSize(8);
+                    const wrappedText = doc.splitTextToSize(`Incidência: ${incidencia}`, pageWidth - margin * 2 - 10);
+                    doc.text(wrappedText, margin + 10, yPosition);
+                    yPosition += wrappedText.length * 3;
+                }
+
+                if (valorIdeal || valorMedido || equipamento) {
+                    doc.setTextColor(0, 100, 200);
+                    doc.setFontSize(8);
+                    const medicaoText = `Ideal: ${valorIdeal || 'N/A'} | Medido: ${valorMedido || 'N/A'} | Equip: ${equipamento || 'N/A'}`;
+                    doc.text(medicaoText, margin + 10, yPosition);
+                    yPosition += 4;
+                }
+
+                yPosition += 3;
+            });
+
+            yPosition += 5;
+        });
+
+        // Salvar
+        const nsValue = document.getElementById('ns').value || 'sem_ns';
+        const fileName = `inspecao_${nsValue}_${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.save(fileName);
+        alert('PDF exportado com sucesso!');
+
+    } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+        alert('Erro ao gerar PDF: ' + error.message);
+    }
+}
+
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</body>
+</html>

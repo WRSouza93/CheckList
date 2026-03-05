@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Registros — Form 25 VARPE{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="h4 mb-0 fw-bold">Registros de Inspeção Final</h1>
+    <p class="text-muted small mb-0">Form 25 — Prod. — Checklist VARPE</p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('exportar_excel_lista') }}" class="btn btn-outline-success btn-sm">
+      <i class="bi bi-file-earmark-excel me-1"></i>Excel
+    </a>
+    <a href="{{ url_for('exportar_pdf_lista') }}" class="btn btn-outline-danger btn-sm">
+      <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+    </a>
+    {% if session.is_admin %}
+    <a href="{{ url_for('novo') }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-plus-lg me-1"></i>Nova OP
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Busca + Filtro -->
+<div class="card mb-4">
+  <div class="card-body py-3">
+    <div class="d-flex flex-wrap gap-3 align-items-start">
+      <form method="get" class="d-flex gap-2 align-items-center flex-fill" style="min-width:200px;max-width:480px">
+        <input type="hidden" name="f" value="{{ filtro }}">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" name="q" class="form-control" placeholder="Cliente, OP, N/S, modelo…" value="{{ busca }}">
+        </div>
+        <button type="submit" class="btn btn-sm btn-primary flex-shrink-0">Buscar</button>
+        {% if busca %}
+          <a href="{{ url_for('index', f=filtro) }}" class="btn btn-sm btn-outline-secondary flex-shrink-0">Limpar</a>
+        {% endif %}
+      </form>
+      <div class="d-flex gap-1 flex-wrap align-items-center">
+        <span class="small text-muted me-1">Status:</span>
+        <a href="{{ url_for('index', q=busca, f='todos') }}"
+           class="btn btn-xs {% if filtro == 'todos' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+          Todos
+        </a>
+        <a href="{{ url_for('index', q=busca, f='abertos') }}"
+           class="btn btn-xs {% if filtro == 'abertos' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+          <i class="bi bi-clock me-1"></i>Em andamento
+        </a>
+        <a href="{{ url_for('index', q=busca, f='encerrados') }}"
+           class="btn btn-xs {% if filtro == 'encerrados' %}btn-success{% else %}btn-outline-success{% endif %}">
+          <i class="bi bi-check-circle me-1"></i>Encerrados
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabela -->
+<div class="card">
+  <div class="card-body p-0">
+    {% if registros %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th style="width:50px">#</th>
+            <th>Cliente</th>
+            <th>OP</th>
+            <th>N/S</th>
+            <th>Modelo</th>
+            <th>Data</th>
+            <th>Responsável</th>
+            <th style="width:90px" class="text-center">Status</th>
+            <th style="width:160px" class="text-center">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for reg in registros %}
+          <tr>
+            <td class="text-muted small">{{ reg.id }}</td>
+            <td class="fw-medium">{{ reg.cliente or '—' }}</td>
+            <td>{{ reg.op or '—' }}</td>
+            <td>{{ reg.ns or '—' }}</td>
+            <td>{{ reg.modelo or '—' }}</td>
+            <td class="text-nowrap">{{ reg.data or '—' }}</td>
+            <td>{{ reg.responsavel or '—' }}</td>
+            <td class="text-center">
+              {% if reg.encerrado %}
+                <span class="badge bg-success" style="font-size:.65rem"><i class="bi bi-lock me-1"></i>Encerrado</span>
+              {% else %}
+                <span class="badge bg-warning text-dark" style="font-size:.65rem"><i class="bi bi-clock me-1"></i>Aberto</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              <div class="d-flex gap-1 justify-content-center">
+                <a href="{{ url_for('ver', registro_id=reg.id) }}" class="btn btn-xs btn-outline-primary" title="Visualizar">
+                  <i class="bi bi-eye"></i>
+                </a>
+                {% if not reg.encerrado or session.is_admin %}
+                <a href="{{ url_for('editar', registro_id=reg.id) }}" class="btn btn-xs btn-outline-secondary" title="Editar">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                {% endif %}
+                <a href="{{ url_for('exportar_excel', registro_id=reg.id) }}" class="btn btn-xs btn-outline-success" title="Excel">
+                  <i class="bi bi-file-earmark-excel"></i>
+                </a>
+                <a href="{{ url_for('exportar_pdf', registro_id=reg.id) }}" class="btn btn-xs btn-outline-danger" title="PDF">
+                  <i class="bi bi-file-earmark-pdf"></i>
+                </a>
+                {% if session.is_admin %}
+                <form method="post" action="{{ url_for('excluir', registro_id=reg.id) }}" class="d-inline"
+                      onsubmit="return confirm('Excluir este registro?')">
+                  <button type="submit" class="btn btn-xs btn-outline-danger" title="Excluir">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="px-3 py-2 text-muted small border-top d-flex align-items-center justify-content-between">
+      <span>{{ registros|length }} registro{{ 's' if registros|length != 1 else '' }} encontrado{{ 's' if registros|length != 1 else '' }}</span>
+      {% if filtro != 'todos' %}
+        <a href="{{ url_for('index', q=busca) }}" class="btn btn-xs btn-outline-secondary">Ver todos</a>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-clipboard2-x fs-1 d-block mb-3 opacity-30"></i>
+      <p class="mb-2">Nenhum registro encontrado.</p>
+      {% if session.is_admin %}
+      <a href="{{ url_for('novo') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>Criar primeiro registro
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

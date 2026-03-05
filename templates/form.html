@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar' if registro else 'Novo' }} Registro — Form 25 VARPE{% endblock %}
+
+{% macro render_item(item, resp, registro, funcionarios) %}
+{% set safe_id = item.id | replace('.', '_') %}
+{% set cur_status = resp.get('status', '') %}
+{% set historico = resp.get('historico_nok', []) %}
+{% set marcado_por = resp.get('marcado_por_id') %}
+{% set can_clear = (registro and (session.is_admin or not marcado_por or marcado_por == session.user_id)) %}
+<div class="checklist-item px-3 py-2 {% if cur_status %}item-{{ cur_status | lower }}{% endif %}"
+     data-item="{{ item.id }}" id="ci_{{ safe_id }}">
+  <div class="row align-items-start g-2">
+    <div class="col-auto">
+      <span class="item-num">{{ item.id }}</span>
+    </div>
+    <div class="col">
+      <div class="d-flex align-items-start justify-content-between gap-2">
+        <p class="mb-2 item-desc">{{ item.desc }}</p>
+        {% if can_clear and cur_status %}
+        <button type="button" class="btn btn-xs btn-outline-secondary flex-shrink-0 clear-item-btn"
+                data-codigo="{{ item.id }}" title="Desmarcar item">
+          <i class="bi bi-x-lg"></i>
+        </button>
+        {% endif %}
+      </div>
+
+      <!-- Histórico NOK anterior -->
+      {% if historico %}
+      <div class="historico-nok mb-2">
+        {% for h in historico %}
+        <div class="hist-entry {% if h.acao == 'resolved' %}hist-resolved{% else %}hist-reeval{% endif %} mb-1">
+          <span class="hist-badge">
+            {% if h.acao == 'resolved' %}<i class="bi bi-check2-circle me-1"></i>Resolvido
+            {% else %}<i class="bi bi-arrow-repeat me-1"></i>Reavaliado NOK{% endif %}
+          </span>
+          <span class="hist-data">{{ h.get('data', '') }}</span>
+          {% if h.get('responsavel') %}<span class="hist-resp"><i class="bi bi-person me-1"></i>{{ h.responsavel }}</span>{% endif %}
+          {% if h.get('incidencia') %}<span class="hist-inc">{{ h.incidencia }}</span>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="row g-2 align-items-center">
+        <div class="col-auto">
+          <div class="d-flex gap-1 align-items-center">
+            {% for s in ['OK', 'NOK', 'NA'] %}
+            <input type="radio" class="btn-check status-radio" name="status_{{ safe_id }}"
+                   id="s_{{ safe_id }}_{{ s }}" value="{{ s }}" autocomplete="off"
+                   {% if cur_status == s %}checked{% endif %}>
+            <label class="btn btn-xs status-btn status-{{ s }}" for="s_{{ safe_id }}_{{ s }}">{{ s }}</label>
+            {% endfor %}
+            <button type="button" class="btn btn-xs btn-outline-secondary clear-status-btn ms-1"
+                    data-safe="{{ safe_id }}" title="Remover seleção"
+                    {% if not cur_status %}style="display:none"{% endif %}>
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>
+        <div class="col-auto">
+          {% if session.is_admin %}
+          <select name="resp_{{ safe_id }}" class="form-select form-select-sm resp-select" style="min-width:130px">
+            <option value="">— Responsável —</option>
+            {% for f in funcionarios %}
+            <option value="{{ f.nome }}" {% if resp.get('responsavel') == f.nome %}selected{% endif %}>{{ f.nome }}</option>
+            {% endfor %}
+          </select>
+          {% else %}
+          <input type="hidden" name="resp_{{ safe_id }}" id="resp_input_{{ safe_id }}"
+                 value="{{ resp.get('responsavel', '') }}">
+          <span class="resp-fixo {% if not cur_status %}d-none{% endif %}" id="resp_display_{{ safe_id }}">
+            <i class="bi bi-person-check me-1"></i>{{ resp.get('responsavel') or session.user_nome }}
+          </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="nok-fields mt-2 {% if cur_status != 'NOK' %}d-none{% endif %}" id="nok_{{ safe_id }}">
+        <textarea name="inc_{{ safe_id }}" class="form-control form-control-sm nok-textarea
+                  {% if item.id in nok_sem_inc %}border-danger{% endif %}"
+                  placeholder="Descreva a incidência… (obrigatório)" rows="2">{{ resp.get('incidencia', '') }}</textarea>
+        {% if item.id in nok_sem_inc %}
+        <div class="small text-danger mt-1"><i class="bi bi-exclamation-circle me-1"></i>Incidência obrigatória para itens NOK.</div>
+        {% endif %}
+      </div>
+
+      {% if item.get('medicao') %}
+      <div class="row g-2 mt-1 medicao-fields">
+        <div class="col-sm-4">
+          <input type="text" name="vi_{{ safe_id }}" class="form-control form-control-sm"
+                 placeholder="Valor Ideal" value="{{ resp.get('valor_ideal', '') }}">
+        </div>
+        <div class="col-sm-4">
+          <input type="text" name="vm_{{ safe_id }}" class="form-control form-control-sm"
+                 placeholder="Valor Medido" value="{{ resp.get('valor_medido', '') }}">
+        </div>
+        <div class="col-sm-4">
+          <input type="text" name="eq_{{ safe_id }}" class="form-control form-control-sm"
+                 placeholder="Equipamento" value="{{ resp.get('equipamento', '') }}">
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+  <div>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-1">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Registros</a></li>
+        <li class="breadcrumb-item active">{{ 'Editar #' ~ registro.id if registro else 'Novo' }}</li>
+      </ol>
+    </nav>
+    <h1 class="h4 mb-0 fw-bold">
+      {% if registro %}Editar Registro #{{ registro.id }}
+        {% if registro.encerrado %}<span class="badge bg-success ms-2" style="font-size:.7rem">Encerrado</span>{% endif %}
+      {% else %}Novo Registro{% endif %}
+    </h1>
+  </div>
+  <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+</div>
+
+<form method="post" id="mainForm">
+
+  <!-- Informações gerais -->
+  <div class="card mb-3">
+    <div class="card-header collapse-header" data-bs-toggle="collapse" data-bs-target="#bloco-info">
+      <div class="d-flex align-items-center justify-content-between">
+        <h6 class="mb-0 fw-semibold"><i class="bi bi-info-circle me-2"></i>Informações Gerais
+          {% if not session.is_admin and registro %}<span class="badge bg-secondary ms-2" style="font-size:.65rem">Somente leitura</span>{% endif %}
+        </h6>
+        <i class="bi bi-chevron-up collapse-icon"></i>
+      </div>
+    </div>
+    <div class="collapse show" id="bloco-info">
+      <div class="card-body">
+        {% set disabled = (not session.is_admin and registro) %}
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Cliente</label>
+            <input type="text" name="cliente" class="form-control" value="{{ registro.cliente if registro else '' }}" {% if disabled %}disabled{% endif %}>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">OP</label>
+            <input type="text" name="op" class="form-control" value="{{ registro.op if registro else '' }}" {% if disabled %}disabled{% endif %}>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">N/S</label>
+            <input type="text" name="ns" class="form-control" value="{{ registro.ns if registro else '' }}" {% if disabled %}disabled{% endif %}>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Modelo</label>
+            <input type="text" name="modelo" class="form-control" value="{{ registro.modelo if registro else '' }}" {% if disabled %}disabled{% endif %}>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Data</label>
+            <input type="date" name="data" class="form-control" value="{{ registro.data if registro else '' }}" {% if disabled %}disabled{% endif %}>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Produção</label>
+            <input type="text" name="producao" class="form-control" value="{{ registro.producao if registro else '' }}" {% if disabled %}disabled{% endif %}>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Responsável</label>
+            <input type="text" name="responsavel" class="form-control" value="{{ registro.responsavel if registro else '' }}" {% if disabled %}disabled{% endif %}>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de progresso -->
+  <div class="card mb-3">
+    <div class="card-body py-3">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="small fw-semibold">Progresso do Checklist</span>
+        <span class="small text-muted" id="progressLabel">0 respondidos</span>
+      </div>
+      <div class="progress" style="height:8px">
+        <div class="progress-bar bg-success" id="progressBar" style="width:0%"></div>
+      </div>
+      <div class="d-flex gap-3 mt-2">
+        <span class="badge-count ok" id="countOK">OK: 0</span>
+        <span class="badge-count nok" id="countNOK">NOK: 0</span>
+        <span class="badge-count na" id="countNA">NA: 0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Índice de seções -->
+  <div class="card mb-4" id="nav-secoes">
+    <div class="card-body py-3">
+      <p class="small fw-semibold mb-2"><i class="bi bi-list-ul me-1"></i>Navegar para:</p>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="#bloco-info-anchor" class="btn btn-xs btn-outline-secondary">
+          <i class="bi bi-info-circle me-1"></i>Informações Gerais
+        </a>
+        {% for secao in checklist %}
+          <a href="#sec-{{ secao.id }}" class="btn btn-xs btn-outline-primary nav-sec-btn" data-sec="{{ secao.id }}">
+            {{ secao.id }}. {{ secao.nome | truncate(30) }}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div id="bloco-info-anchor"></div>
+
+  <!-- Checklist -->
+  {% for secao in checklist %}
+  <div class="card mb-3" id="sec-{{ secao.id }}">
+    <div class="card-header secao-header collapse-header"
+         data-bs-toggle="collapse" data-bs-target="#body-sec-{{ secao.id }}">
+      <div class="d-flex align-items-center justify-content-between">
+        <h6 class="mb-0 fw-bold text-white">{{ secao.id }}. {{ secao.nome }}</h6>
+        <i class="bi bi-chevron-up collapse-icon text-white"></i>
+      </div>
+    </div>
+    <div class="collapse show" id="body-sec-{{ secao.id }}">
+      <div class="card-body p-0">
+
+        {% if secao.subsecoes is defined %}
+          {% for sub in secao.subsecoes %}
+          <div class="subsecao-header px-3 py-2">
+            <span class="fw-semibold small">{{ sub.id }} — {{ sub.nome }}</span>
+          </div>
+          {% for item in sub.itens %}
+            {% set resp = respostas.get(item.id, {}) %}
+            {{ render_item(item, resp, registro, funcionarios) }}
+          {% endfor %}
+          {% endfor %}
+        {% else %}
+          {% for item in secao.itens %}
+            {% set resp = respostas.get(item.id, {}) %}
+            {{ render_item(item, resp, registro, funcionarios) }}
+          {% endfor %}
+        {% endif %}
+
+        <div class="back-to-nav px-3 py-2">
+          <a href="#nav-secoes" class="btn btn-xs btn-outline-secondary">
+            <i class="bi bi-arrow-up me-1"></i>Voltar ao índice de seções
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- Barra fixa inferior -->
+  <div class="sticky-bottom-bar">
+    <div class="d-flex gap-2 justify-content-end align-items-center">
+      <span class="text-muted small me-auto" id="nokWarningInline" style="display:none!important"></span>
+      <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary" id="submitBtn">
+        <i class="bi bi-check2-circle me-1"></i>
+        {{ 'Salvar Alterações' if registro else 'Criar Registro' }}
+      </button>
+    </div>
+  </div>
+
+</form>
+
+<!-- Toast NOK warning -->
+<div class="toast-container position-fixed bottom-0 start-50 translate-middle-x p-3" style="z-index:2000">
+  <div id="nokToast" class="toast align-items-center text-bg-danger border-0" role="alert">
+    <div class="d-flex">
+      <div class="toast-body" id="nokToastBody">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        Preencha a incidência de todos os itens NOK antes de salvar.
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const TOTAL_ITEMS = document.querySelectorAll('.checklist-item').length;
+const REGISTRO_ID = {{ registro.id if registro else 'null' }};
+const IS_ADMIN    = {{ 'true' if session.is_admin else 'false' }};
+const USER_NOME   = {{ session.user_nome | tojson }};
+
+// ── Progress ──────────────────────────────────────────────────────────────
+function updateProgress() {
+  let ok = 0, nok = 0, na = 0;
+  document.querySelectorAll('.status-radio:checked').forEach(r => {
+    if (r.value === 'OK') ok++;
+    else if (r.value === 'NOK') nok++;
+    else if (r.value === 'NA') na++;
+  });
+  const total = ok + nok + na;
+  const pct = TOTAL_ITEMS > 0 ? Math.round(total / TOTAL_ITEMS * 100) : 0;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = total + ' de ' + TOTAL_ITEMS + ' respondidos (' + pct + '%)';
+  document.getElementById('countOK').textContent = 'OK: ' + ok;
+  document.getElementById('countNOK').textContent = 'NOK: ' + nok;
+  document.getElementById('countNA').textContent = 'NA: ' + na;
+
+  document.querySelectorAll('.checklist-item').forEach(div => {
+    div.classList.remove('item-ok', 'item-nok', 'item-na');
+    const safeId = div.dataset.item.replace(/\./g, '_');
+    const checked = document.querySelector(`input[name="status_${safeId}"]:checked`);
+    if (checked) div.classList.add('item-' + checked.value.toLowerCase());
+  });
+}
+
+// ── Toggle NOK fields + resp badge ──────────────────────────────────────
+document.querySelectorAll('.status-radio').forEach(radio => {
+  radio.addEventListener('change', function() {
+    const safeId = this.name.replace('status_', '');
+    // Incidencia NOK
+    const nokDiv = document.getElementById('nok_' + safeId);
+    if (nokDiv) nokDiv.classList.toggle('d-none', this.value !== 'NOK');
+    // Usuario comum: registra nome e exibe badge
+    if (!IS_ADMIN) {
+      const respInput   = document.getElementById('resp_input_' + safeId);
+      const respDisplay = document.getElementById('resp_display_' + safeId);
+      if (respInput)   respInput.value = USER_NOME;
+      if (respDisplay) {
+        respDisplay.innerHTML = '<i class="bi bi-person-check me-1"></i>' + USER_NOME;
+        respDisplay.classList.remove('d-none');
+      }
+    }
+    // Exibe botao de limpar selecao
+    const clearBtn = document.querySelector(`.clear-status-btn[data-safe="${safeId}"]`);
+    if (clearBtn) clearBtn.style.display = '';
+    updateProgress();
+  });
+});
+
+// ── Limpar selecao de status (client-side) ────────────────────────────────
+document.querySelectorAll('.clear-status-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const safeId = this.dataset.safe;
+    // Desmarca radios
+    document.querySelectorAll(`input[name="status_${safeId}"]`).forEach(r => r.checked = false);
+    // Esconde NOK
+    const nokDiv = document.getElementById('nok_' + safeId);
+    if (nokDiv) nokDiv.classList.add('d-none');
+    // Usuario comum: limpa hidden + esconde badge
+    if (!IS_ADMIN) {
+      const respInput   = document.getElementById('resp_input_' + safeId);
+      const respDisplay = document.getElementById('resp_display_' + safeId);
+      if (respInput)   respInput.value = '';
+      if (respDisplay) respDisplay.classList.add('d-none');
+    } else {
+      const respSel = document.querySelector(`select[name="resp_${safeId}"]`);
+      if (respSel) respSel.value = '';
+    }
+    this.style.display = 'none';
+    updateProgress();
+  });
+});
+
+// ── NOK validation on submit ──────────────────────────────────────────────
+document.getElementById('mainForm').addEventListener('submit', function(e) {
+  const missing = [];
+  document.querySelectorAll('.checklist-item').forEach(div => {
+    const safeId = div.dataset.item.replace(/\./g, '_');
+    const checked = document.querySelector(`input[name="status_${safeId}"]:checked`);
+    if (checked && checked.value === 'NOK') {
+      const inc = document.querySelector(`textarea[name="inc_${safeId}"]`);
+      if (inc && !inc.value.trim()) missing.push(div.dataset.item);
+    }
+  });
+  if (missing.length > 0) {
+    e.preventDefault();
+    const toast = document.getElementById('nokToast');
+    document.getElementById('nokToastBody').innerHTML =
+      '<i class="bi bi-exclamation-triangle-fill me-2"></i>' +
+      'Incidência obrigatória para: <strong>' + missing.join(', ') + '</strong>';
+    new bootstrap.Toast(toast, {delay: 6000}).show();
+    // Scroll to first missing
+    const first = document.querySelector(`[data-item="${missing[0]}"]`);
+    if (first) first.scrollIntoView({behavior: 'smooth', block: 'center'});
+  }
+});
+
+// ── Clear item (AJAX) ─────────────────────────────────────────────────────
+document.querySelectorAll('.clear-item-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    if (!REGISTRO_ID) return;
+    const codigo = this.dataset.codigo;
+    if (!confirm('Desmarcar o item ' + codigo + '?')) return;
+    fetch('/registro/' + REGISTRO_ID + '/limpar_item', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({codigo})
+    }).then(r => r.json()).then(data => {
+      if (data.ok) {
+        const safeId = codigo.replace(/\./g, '_');
+        // Uncheck status radios
+        document.querySelectorAll(`input[name="status_${safeId}"]`).forEach(r => r.checked = false);
+        // Hide NOK fields
+        const nokDiv = document.getElementById('nok_' + safeId);
+        if (nokDiv) nokDiv.classList.add('d-none');
+        // Remove item class
+        const itemDiv = document.getElementById('ci_' + safeId);
+        if (itemDiv) itemDiv.classList.remove('item-ok', 'item-nok', 'item-na');
+        // Hide button
+        this.style.display = 'none';
+        updateProgress();
+      } else {
+        alert(data.msg || 'Erro ao desmarcar item.');
+      }
+    }).catch(() => alert('Erro de comunicação.'));
+  });
+});
+
+// ── Collapse icon rotation ────────────────────────────────────────────────
+document.querySelectorAll('.collapse-header').forEach(header => {
+  const target = document.querySelector(header.dataset.bsTarget);
+  if (!target) return;
+  const icon = header.querySelector('.collapse-icon');
+  target.addEventListener('hide.bs.collapse', () => icon && icon.classList.replace('bi-chevron-up', 'bi-chevron-down'));
+  target.addEventListener('show.bs.collapse', () => icon && icon.classList.replace('bi-chevron-down', 'bi-chevron-up'));
+});
+
+// ── Nav section highlight ─────────────────────────────────────────────────
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    const id = entry.target.id.replace('sec-', '');
+    const btn = document.querySelector(`.nav-sec-btn[data-sec="${id}"]`);
+    if (!btn) return;
+    btn.classList.toggle('active', entry.isIntersecting);
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('[id^="sec-"]').forEach(el => observer.observe(el));
+
+updateProgress();
+</script>
+{% endblock %}

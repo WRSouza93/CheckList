@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}Funcionários — Form 25 VARPE{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+  <div>
+    <h1 class="h4 mb-0 fw-bold">Funcionários</h1>
+    <p class="text-muted small mb-0">Colaboradores e usuários do sistema</p>
+  </div>
+  <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card sticky-top" style="top:1rem">
+      <div class="card-header">
+        <h6 class="mb-0 fw-semibold">
+          {% if modo == 'editar' %}<i class="bi bi-pencil me-2"></i>Editar
+          {% else %}<i class="bi bi-person-plus me-2"></i>Novo Funcionário{% endif %}
+        </h6>
+      </div>
+      <div class="card-body">
+        {% if modo == 'editar' and editando %}
+        <form method="post" action="{{ url_for('funcionario_editar', func_id=editando.id) }}">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Nome</label>
+            <input type="text" name="nome" class="form-control" value="{{ editando.nome }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Nova Senha <small class="text-muted fw-normal">(deixe em branco para manter)</small></label>
+            <input type="password" name="senha" class="form-control" placeholder="••••••">
+          </div>
+          {% if session.is_admin %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Status</label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="ativo" id="at1" value="1" {% if editando.ativo %}checked{% endif %}>
+                <label class="form-check-label text-success fw-semibold" for="at1"><i class="bi bi-check-circle me-1"></i>Ativo</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="ativo" id="at0" value="0" {% if not editando.ativo %}checked{% endif %}>
+                <label class="form-check-label text-secondary" for="at0"><i class="bi bi-pause-circle me-1"></i>Inativo</label>
+              </div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Perfil</label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="is_admin" id="ia1" value="1" {% if editando.is_admin %}checked{% endif %}>
+                <label class="form-check-label fw-semibold text-warning" for="ia1"><i class="bi bi-shield-check me-1"></i>Admin</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="is_admin" id="ia0" value="0" {% if not editando.is_admin %}checked{% endif %}>
+                <label class="form-check-label" for="ia0"><i class="bi bi-person me-1"></i>Usuário</label>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <input type="hidden" name="ativo" value="1">
+          {% endif %}
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm flex-fill"><i class="bi bi-check2 me-1"></i>Salvar</button>
+            <a href="{{ url_for('funcionarios') }}" class="btn btn-outline-secondary btn-sm">Cancelar</a>
+          </div>
+        </form>
+
+        {% elif session.is_admin %}
+        <form method="post" action="{{ url_for('funcionario_novo') }}">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Nome</label>
+            <input type="text" name="nome" class="form-control" placeholder="Nome do funcionário" required autofocus>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Senha</label>
+            <input type="password" name="senha" class="form-control" placeholder="••••••">
+            <div class="form-text">Deixe em branco para definir depois.</div>
+          </div>
+          <div class="mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_admin" id="isAdminNew" value="1">
+              <label class="form-check-label" for="isAdminNew"><i class="bi bi-shield-check me-1"></i>Administrador</label>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-plus-lg me-1"></i>Cadastrar</button>
+        </form>
+
+        {% else %}
+        <p class="text-muted small">Para editar seus dados, clique em Editar na linha do seu nome.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <h6 class="mb-0 fw-semibold"><i class="bi bi-people me-2"></i>Colaboradores</h6>
+        <span class="badge bg-secondary">{{ funcionarios|length }}</span>
+      </div>
+      <div class="card-body p-0">
+        {% if funcionarios %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th class="text-center">Perfil</th>
+                <th class="text-center">Senha</th>
+                <th class="text-center">Status</th>
+                <th class="text-center" style="width:100px">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for f in funcionarios %}
+              <tr class="{% if not f.ativo %}opacity-60{% endif %}">
+                <td class="fw-medium">{{ f.nome }}</td>
+                <td class="text-center">
+                  {% if f.is_admin %}
+                    <span class="badge bg-warning text-dark"><i class="bi bi-shield-check me-1"></i>Admin</span>
+                  {% else %}
+                    <span class="text-muted small">Usuário</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  {% if f.senha_hash %}
+                    <i class="bi bi-lock-fill text-success" title="Senha definida"></i>
+                  {% else %}
+                    <i class="bi bi-unlock text-warning" title="Sem senha"></i>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  {% if f.ativo %}
+                    <span class="badge-func ativo"><i class="bi bi-check-circle me-1"></i>Ativo</span>
+                  {% else %}
+                    <span class="badge-func inativo"><i class="bi bi-pause-circle me-1"></i>Inativo</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  <div class="d-flex gap-1 justify-content-center">
+                    <a href="{{ url_for('funcionario_editar', func_id=f.id) }}"
+                       class="btn btn-xs btn-outline-secondary" title="Editar">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    {% if session.is_admin and f.id != session.user_id %}
+                    <form method="post" action="{{ url_for('funcionario_excluir', func_id=f.id) }}" class="d-inline"
+                          onsubmit="return confirm('Excluir/inativar este funcionário?')">
+                      <button type="submit" class="btn btn-xs btn-outline-danger" title="Excluir">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+          <i class="bi bi-people fs-2 opacity-30 d-block mb-2"></i>Nenhum funcionário cadastrado.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="alert alert-info mt-3 small">
+      <i class="bi bi-info-circle me-1"></i>
+      Funcionários com registros associados são <strong>inativados</strong> ao excluir.
+      Usuários sem senha <i class="bi bi-unlock"></i> não conseguem fazer login.
+    </div>
+  </div>
+</div>
+{% endblock %}

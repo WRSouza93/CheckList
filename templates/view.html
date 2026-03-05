@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+{% block title %}Registro #{{ registro.id }} — Form 25 VARPE{% endblock %}
+
+{% macro render_view_item(item, resp) %}
+{% set status = resp.get('status', '') %}
+{% set historico = resp.get('historico_nok', []) %}
+<div class="view-item px-3 py-2 {% if status %}item-{{ status | lower }}{% endif %}"
+     data-status="{{ status or 'sem' }}">
+  <div class="row align-items-start g-2">
+    <div class="col-auto"><span class="item-num">{{ item.id }}</span></div>
+    <div class="col">
+      <p class="mb-1 item-desc">{{ resp.get('desc_snapshot') or item.desc }}</p>
+      <div class="d-flex flex-wrap gap-2 align-items-center mb-1">
+        {% if status %}<span class="badge-status {{ status | lower }}">{{ status }}</span>
+        {% else %}<span class="badge-status sem">—</span>{% endif %}
+        {% if resp.get('responsavel') %}<span class="text-muted small"><i class="bi bi-person me-1"></i>{{ resp.responsavel }}</span>{% endif %}
+        {% if resp.get('incidencia') %}<span class="incidencia-text"><i class="bi bi-exclamation-circle me-1"></i>{{ resp.incidencia }}</span>{% endif %}
+      </div>
+      {% if resp.get('valor_ideal') or resp.get('valor_medido') or resp.get('equipamento') %}
+      <div class="medicao-row mt-1">
+        {% if resp.get('valor_ideal') %}<span>Ideal: <strong>{{ resp.valor_ideal }}</strong></span>{% endif %}
+        {% if resp.get('valor_medido') %}<span>Medido: <strong>{{ resp.valor_medido }}</strong></span>{% endif %}
+        {% if resp.get('equipamento') %}<span>Equip.: <strong>{{ resp.equipamento }}</strong></span>{% endif %}
+      </div>{% endif %}
+      {% if historico %}
+      <div class="historico-nok mt-2">
+        {% for h in historico %}
+        <div class="hist-entry {% if h.acao == 'resolved' %}hist-resolved{% else %}hist-reeval{% endif %} mb-1">
+          <span class="hist-badge">
+            {% if h.acao == 'resolved' %}<i class="bi bi-check2-circle me-1"></i>Resolvido
+            {% else %}<i class="bi bi-arrow-repeat me-1"></i>Reavaliado NOK{% endif %}
+          </span>
+          <span class="hist-data">{{ h.get('data', '') }}</span>
+          {% if h.get('responsavel') %}<span class="hist-resp"><i class="bi bi-person me-1"></i>{{ h.responsavel }}</span>{% endif %}
+          {% if h.get('incidencia') %}<span class="hist-inc">{{ h.incidencia }}</span>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+{% block content %}
+<div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-2">
+  <div>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-1">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Registros</a></li>
+        <li class="breadcrumb-item active">#{{ registro.id }}</li>
+      </ol>
+    </nav>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <h1 class="h4 mb-0 fw-bold">Inspeção Final — {{ registro.cliente or 'S/ Cliente' }}</h1>
+      {% if registro.encerrado %}
+        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Encerrado</span>
+      {% else %}
+        <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Em andamento</span>
+      {% endif %}
+    </div>
+    <p class="text-muted small mb-0">OP: {{ registro.op or '—' }} | N/S: {{ registro.ns or '—' }} | Modelo: {{ registro.modelo or '—' }}</p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    {% if not registro.encerrado %}
+    <a href="{{ url_for('editar', registro_id=registro.id) }}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-pencil me-1"></i>Editar
+    </a>
+    {% endif %}
+    <a href="{{ url_for('exportar_excel', registro_id=registro.id) }}" class="btn btn-sm btn-outline-success">
+      <i class="bi bi-file-earmark-excel me-1"></i>Excel
+    </a>
+    <a href="{{ url_for('exportar_pdf', registro_id=registro.id) }}" class="btn btn-sm btn-outline-danger">
+      <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+    </a>
+    {% if session.is_admin %}
+      {% if registro.encerrado %}
+      <form method="post" action="{{ url_for('reabrir', registro_id=registro.id) }}" class="d-inline">
+        <button type="submit" class="btn btn-sm btn-outline-warning"
+                onclick="return confirm('Reabrir este registro?')">
+          <i class="bi bi-lock-open me-1"></i>Reabrir
+        </button>
+      </form>
+      {% endif %}
+      <form method="post" action="{{ url_for('excluir', registro_id=registro.id) }}" class="d-inline"
+            onsubmit="return confirm('Excluir este registro permanentemente?')">
+        <button type="submit" class="btn btn-sm btn-outline-danger">
+          <i class="bi bi-trash me-1"></i>Excluir
+        </button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Informações -->
+<div class="card mb-3">
+  <div class="card-header collapse-header" data-bs-toggle="collapse" data-bs-target="#view-info">
+    <div class="d-flex align-items-center justify-content-between">
+      <h6 class="mb-0 fw-semibold"><i class="bi bi-info-circle me-2"></i>Informações Gerais</h6>
+      <i class="bi bi-chevron-up collapse-icon"></i>
+    </div>
+  </div>
+  <div class="collapse show" id="view-info">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-sm-4 col-lg-3"><div class="info-field"><span class="info-label">Cliente</span><span class="info-value">{{ registro.cliente or '—' }}</span></div></div>
+        <div class="col-sm-4 col-lg-2"><div class="info-field"><span class="info-label">OP</span><span class="info-value">{{ registro.op or '—' }}</span></div></div>
+        <div class="col-sm-4 col-lg-2"><div class="info-field"><span class="info-label">N/S</span><span class="info-value">{{ registro.ns or '—' }}</span></div></div>
+        <div class="col-sm-6 col-lg-3"><div class="info-field"><span class="info-label">Modelo</span><span class="info-value">{{ registro.modelo or '—' }}</span></div></div>
+        <div class="col-sm-6 col-lg-2"><div class="info-field"><span class="info-label">Data</span><span class="info-value">{{ registro.data or '—' }}</span></div></div>
+        <div class="col-sm-6 col-lg-4"><div class="info-field"><span class="info-label">Produção</span><span class="info-value">{{ registro.producao or '—' }}</span></div></div>
+        <div class="col-sm-6 col-lg-4"><div class="info-field"><span class="info-label">Responsável</span><span class="info-value">{{ registro.responsavel or '—' }}</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Resumo -->
+<div class="row g-3 mb-3">
+  <div class="col-6 col-sm-3"><div class="summary-card ok"><div class="summary-num">{{ ok }}</div><div class="summary-label"><i class="bi bi-check-circle me-1"></i>OK</div></div></div>
+  <div class="col-6 col-sm-3"><div class="summary-card nok"><div class="summary-num">{{ nok }}</div><div class="summary-label"><i class="bi bi-x-circle me-1"></i>NOK</div></div></div>
+  <div class="col-6 col-sm-3"><div class="summary-card na"><div class="summary-num">{{ na }}</div><div class="summary-label"><i class="bi bi-dash-circle me-1"></i>NA</div></div></div>
+  <div class="col-6 col-sm-3"><div class="summary-card total"><div class="summary-num">{{ total }}</div><div class="summary-label"><i class="bi bi-list-check me-1"></i>Total</div></div></div>
+</div>
+
+<!-- Filtro + navegação -->
+<div class="card mb-4" id="nav-secoes">
+  <div class="card-body py-3">
+    <div class="d-flex flex-wrap gap-3 align-items-start">
+      <div>
+        <p class="small fw-semibold mb-2"><i class="bi bi-funnel me-1"></i>Filtrar por status:</p>
+        <div class="d-flex gap-1 flex-wrap">
+          <button class="btn btn-xs btn-outline-secondary filter-btn active" data-filter="all">Todos</button>
+          <button class="btn btn-xs btn-outline-success filter-btn" data-filter="OK">OK</button>
+          <button class="btn btn-xs btn-outline-danger filter-btn" data-filter="NOK">NOK</button>
+          <button class="btn btn-xs btn-outline-warning filter-btn" data-filter="NA">NA</button>
+          <button class="btn btn-xs btn-outline-secondary filter-btn" data-filter="sem">Sem resposta</button>
+        </div>
+      </div>
+      <div class="vr d-none d-sm-block"></div>
+      <div class="flex-fill">
+        <p class="small fw-semibold mb-2"><i class="bi bi-list-ul me-1"></i>Navegar para:</p>
+        <div class="d-flex flex-wrap gap-2">
+          {% for secao in checklist %}
+            <a href="#view-sec-{{ secao.id }}" class="btn btn-xs btn-outline-primary nav-sec-btn" data-sec="{{ secao.id }}">
+              {{ secao.id }}. {{ secao.nome | truncate(30) }}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Checklist -->
+{% for secao in checklist %}
+<div class="card mb-3 secao-view" id="view-sec-{{ secao.id }}">
+  <div class="card-header secao-header collapse-header"
+       data-bs-toggle="collapse" data-bs-target="#view-body-{{ secao.id }}">
+    <div class="d-flex align-items-center justify-content-between">
+      <h6 class="mb-0 fw-bold text-white">{{ secao.id }}. {{ secao.nome }}</h6>
+      <i class="bi bi-chevron-up collapse-icon text-white"></i>
+    </div>
+  </div>
+  <div class="collapse show" id="view-body-{{ secao.id }}">
+    <div class="card-body p-0">
+      {% if secao.subsecoes is defined %}
+        {% for sub in secao.subsecoes %}
+        <div class="subsecao-header px-3 py-2">
+          <span class="fw-semibold small">{{ sub.id }} — {{ sub.nome }}</span>
+        </div>
+        {% for item in sub.itens %}
+          {% set resp = registro.respostas.get(item.id, {}) %}
+          {{ render_view_item(item, resp) }}
+        {% endfor %}
+        {% endfor %}
+      {% else %}
+        {% for item in secao.itens %}
+          {% set resp = registro.respostas.get(item.id, {}) %}
+          {{ render_view_item(item, resp) }}
+        {% endfor %}
+      {% endif %}
+      <div class="back-to-nav px-3 py-2">
+        <a href="#nav-secoes" class="btn btn-xs btn-outline-secondary">
+          <i class="bi bi-arrow-up me-1"></i>Voltar ao índice de seções
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<!-- Assinaturas e Encerramento (somente admin) -->
+{% if session.is_admin %}
+<div class="card mb-4" id="bloco-assinaturas">
+  <div class="card-header">
+    <h6 class="mb-0 fw-semibold"><i class="bi bi-pen me-2"></i>Assinaturas e Encerramento</h6>
+  </div>
+  <div class="card-body">
+    {% if registro.encerrado %}
+    <div class="row g-4">
+      <div class="col-md-6">
+        <p class="small fw-semibold text-muted text-uppercase mb-2"><i class="bi bi-award me-1"></i>Qualidade</p>
+        {% if registro.assinatura_qualidade %}
+          <div class="assinatura-display"><img src="{{ registro.assinatura_qualidade }}" alt="Assinatura Qualidade" class="assinatura-img"></div>
+        {% else %}<p class="text-muted small">Não registrada.</p>{% endif %}
+      </div>
+      <div class="col-md-6">
+        <p class="small fw-semibold text-muted text-uppercase mb-2"><i class="bi bi-person-badge me-1"></i>Resp. Produção</p>
+        {% if registro.assinatura_producao %}
+          <div class="assinatura-display"><img src="{{ registro.assinatura_producao }}" alt="Assinatura Produção" class="assinatura-img"></div>
+        {% else %}<p class="text-muted small">Não registrada.</p>{% endif %}
+      </div>
+    </div>
+    {% else %}
+    {% if not todos_preenchidos %}
+    <div class="alert alert-warning small mb-3">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      Todos os itens precisam ser preenchidos antes de encerrar.
+      <strong>{{ ok + nok + na }}/{{ total }}</strong> preenchidos.
+    </div>
+    {% endif %}
+    <form method="post" action="{{ url_for('encerrar', registro_id=registro.id) }}" id="encerrarForm">
+      <input type="hidden" name="assinatura_qualidade" id="assinaturaQualidadeData">
+      <input type="hidden" name="assinatura_producao"  id="assinaturaProducaoData">
+      <div class="row g-4 mb-4">
+        <div class="col-md-6">
+          <p class="small fw-semibold text-muted text-uppercase mb-2"><i class="bi bi-award me-1"></i>Assinatura — Qualidade</p>
+          <div class="signature-container"><canvas id="canvasQualidade" class="signature-canvas"></canvas></div>
+          <div class="d-flex gap-2 mt-2 align-items-center">
+            <button type="button" class="btn btn-xs btn-outline-secondary" id="btnLimparQ"><i class="bi bi-eraser me-1"></i>Limpar</button>
+            <span class="small text-success fw-semibold" id="sigQualidadeStatus" style="display:none"><i class="bi bi-check-circle me-1"></i>Assinado</span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <p class="small fw-semibold text-muted text-uppercase mb-2"><i class="bi bi-person-badge me-1"></i>Assinatura — Resp. Produção</p>
+          <div class="signature-container"><canvas id="canvasProducao" class="signature-canvas"></canvas></div>
+          <div class="d-flex gap-2 mt-2 align-items-center">
+            <button type="button" class="btn btn-xs btn-outline-secondary" id="btnLimparP"><i class="bi bi-eraser me-1"></i>Limpar</button>
+            <span class="small text-success fw-semibold" id="sigProducaoStatus" style="display:none"><i class="bi bi-check-circle me-1"></i>Assinado</span>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <button type="submit" id="btnEncerrar" class="btn btn-success" disabled>
+          <i class="bi bi-lock-fill me-1"></i>Encerrar Checklist
+        </button>
+        <span class="text-muted small" id="encerrarHint">
+          {% if not todos_preenchidos %}Preencha todos os itens para encerrar.{% else %}Assine os dois campos acima para encerrar.{% endif %}
+        </span>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Filtro
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    const filter = this.dataset.filter;
+    document.querySelectorAll('.view-item').forEach(item => {
+      item.style.display = (filter === 'all' || item.dataset.status === filter) ? '' : 'none';
+    });
+    document.querySelectorAll('.secao-view').forEach(sec => {
+      const visible = [...sec.querySelectorAll('.view-item')].some(i => i.style.display !== 'none');
+      sec.style.display = visible ? '' : 'none';
+    });
+  });
+});
+
+// Collapse
+document.querySelectorAll('.collapse-header').forEach(header => {
+  const target = document.querySelector(header.dataset.bsTarget);
+  if (!target) return;
+  const icon = header.querySelector('.collapse-icon');
+  target.addEventListener('hide.bs.collapse', () => icon && icon.classList.replace('bi-chevron-up', 'bi-chevron-down'));
+  target.addEventListener('show.bs.collapse', () => icon && icon.classList.replace('bi-chevron-down', 'bi-chevron-up'));
+});
+
+// Nav highlight
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    const id = entry.target.id.replace('view-sec-', '');
+    const btn = document.querySelector(`.nav-sec-btn[data-sec="${id}"]`);
+    if (btn) btn.classList.toggle('active', entry.isIntersecting);
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('[id^="view-sec-"]').forEach(el => observer.observe(el));
+
+// Signature pads
+const canvasQ = document.getElementById('canvasQualidade');
+const canvasP = document.getElementById('canvasProducao');
+
+if (canvasQ && canvasP) {
+  function resizeCanvas(canvas) {
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    const rect  = canvas.getBoundingClientRect();
+    canvas.width  = rect.width  * ratio;
+    canvas.height = rect.height * ratio;
+    canvas.getContext('2d').scale(ratio, ratio);
+  }
+  resizeCanvas(canvasQ);
+  resizeCanvas(canvasP);
+
+  const padQ = new SignaturePad(canvasQ, { penColor: '#082d45' });
+  const padP = new SignaturePad(canvasP, { penColor: '#082d45' });
+  const todosOk = {{ 'true' if todos_preenchidos else 'false' }};
+
+  function updateEncerrar() {
+    const qOk = !padQ.isEmpty(), pOk = !padP.isEmpty();
+    const stQ  = document.getElementById('sigQualidadeStatus');
+    const stP  = document.getElementById('sigProducaoStatus');
+    const btn  = document.getElementById('btnEncerrar');
+    const hint = document.getElementById('encerrarHint');
+    if (stQ) stQ.style.display = qOk ? '' : 'none';
+    if (stP) stP.style.display = pOk ? '' : 'none';
+    if (btn) {
+      const ready = qOk && pOk && todosOk;
+      btn.disabled = !ready;
+      if (hint) hint.textContent = !todosOk
+        ? 'Preencha todos os itens para encerrar.'
+        : ready ? 'Clique para encerrar.' : 'Assine os dois campos acima para encerrar.';
+    }
+  }
+
+  padQ.addEventListener('endStroke', updateEncerrar);
+  padP.addEventListener('endStroke', updateEncerrar);
+
+  document.getElementById('btnLimparQ').addEventListener('click', () => { padQ.clear(); updateEncerrar(); });
+  document.getElementById('btnLimparP').addEventListener('click', () => { padP.clear(); updateEncerrar(); });
+
+  document.getElementById('encerrarForm').addEventListener('submit', function(e) {
+    if (padQ.isEmpty() || padP.isEmpty()) {
+      e.preventDefault();
+      alert('Por favor, assine os dois campos antes de encerrar.');
+      return;
+    }
+    document.getElementById('assinaturaQualidadeData').value = padQ.toDataURL('image/png');
+    document.getElementById('assinaturaProducaoData').value  = padP.toDataURL('image/png');
+  });
+
+  window.addEventListener('resize', () => {
+    [{ c: canvasQ, p: padQ }, { c: canvasP, p: padP }].forEach(({ c, p }) => {
+      const data = p.toData(); resizeCanvas(c); p.fromData(data);
+    });
+    updateEncerrar();
+  });
+}
+</script>
+{% endblock %}
